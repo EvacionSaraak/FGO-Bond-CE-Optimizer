@@ -187,7 +187,7 @@ const state = {
   servantSearch: "",
   ceSearch: "",
   servantOptimizationEnabled: false,
-  recommendationIds: [],
+  recommendations: [],
   dataMode: "remote"
 };
 
@@ -254,7 +254,7 @@ function bindEvents() {
   });
 
   dom.optimizeCEsButton.addEventListener("click", () => {
-    state.recommendationIds = buildCERecommendations().map((ce) => ce.id);
+    state.recommendations = buildCERecommendations();
     renderRecommendations();
   });
 
@@ -272,7 +272,7 @@ function bindEvents() {
     state.selectedCEs = Array(SLOT_COUNT).fill(null);
     state.activeServantSlot = null;
     state.activeCESlot = null;
-    state.recommendationIds = [];
+    state.recommendations = [];
     state.servantOptimizationEnabled = false;
     state.servantSearch = "";
     state.ceSearch = "";
@@ -323,6 +323,7 @@ function normalizeServants(servants) {
       name: servant.name,
       normalizedName: normalizeText(servant.name),
       className: servant.className || "unknown",
+      fallbackImage: createTextImage(servant.name, "#1d3557"),
       image: extractPrimaryImage(servant, "servant"),
       classIcon: createClassIcon(servant.className || "unknown"),
       gender: normalizeText(servant.gender || "unknown"),
@@ -346,6 +347,7 @@ function normalizeCEs(craftEssences) {
         detail,
         normalizedDetail: normalizeText(detail),
         percent,
+        fallbackImage: createTextImage(ce.name, "#5a189a"),
         image: extractPrimaryImage(ce, "ce"),
         raw: ce
       };
@@ -360,6 +362,7 @@ function renderAll() {
   renderServantSidebar();
   renderCESidebar();
   renderRecommendations();
+  bindImageFallbacks(document);
 }
 
 function renderServantSlots() {
@@ -497,11 +500,7 @@ function renderCESidebar() {
 }
 
 function renderRecommendations() {
-  const recommendations = state.recommendationIds.length
-    ? state.recommendationIds
-        .map((id) => state.ces.find((ce) => ce.id === id))
-        .filter(Boolean)
-    : [];
+  const recommendations = state.recommendations;
 
   if (!recommendations.length) {
     dom.recommendationArea.innerHTML = `<div class="empty-state">Click <strong>Optimize CEs</strong> to rank bond-focused Craft Essences for the servants currently in the lineup.</div>`;
@@ -514,7 +513,7 @@ function renderRecommendations() {
 
   dom.recommendationArea.querySelectorAll("[data-recommendation-id]").forEach((card) => {
     const ceId = Number(card.dataset.recommendationId);
-    const ce = state.ces.find((entry) => entry.id === ceId);
+    const ce = recommendations.find((entry) => entry.id === ceId);
     if (!ce) {
       return;
     }
@@ -548,12 +547,14 @@ function getVisibleServantsForSidebar(slotIndex) {
       return true;
     }
 
-    const selectedCEs = state.selectedCEs.filter(Boolean);
+    const selectedCEs = state.selectedCEs
+      .map((ce, ceSlotIndex) => (ce ? { ce, ceSlotIndex } : null))
+      .filter(Boolean);
     if (!selectedCEs.length) {
       return true;
     }
 
-    return selectedCEs.every((ce, ceIndex) => doesCEAffectServant(ce, servant, ceIndex, slotIndex));
+    return selectedCEs.every(({ ce, ceSlotIndex }) => doesCEAffectServant(ce, servant, ceSlotIndex, slotIndex));
   });
 }
 
@@ -563,16 +564,20 @@ function buildCERecommendations() {
     .filter((entry) => entry.servant);
 
   return state.ces
-    .map((ce) => ({
-      ...ce,
-      totalBonus: selectedServants.reduce((sum, entry) => {
-        if (!doesCEAffectServant(ce, entry.servant, -1, entry.slotIndex, true)) {
-          return sum;
-        }
-        return sum + ce.percent;
-      }, 0) - (isExceptSelfCE(ce.detail) && selectedServants.length ? ce.percent : 0),
-      affectedServants: selectedServants.filter((entry) => doesCEAffectServant(ce, entry.servant, -1, entry.slotIndex, true))
-    }))
+    .map((ce) => {
+      const affectedServants = selectedServants.filter((entry) =>
+        doesCEAffectServant(ce, entry.servant, -1, entry.slotIndex, true)
+      );
+      const baseTotal = affectedServants.length * ce.percent;
+      const totalBonus =
+        baseTotal - (isExceptSelfCE(ce.detail) && affectedServants.length ? ce.percent : 0);
+
+      return {
+        ...ce,
+        totalBonus: Math.max(totalBonus, 0),
+        affectedServants
+      };
+    })
     .sort((left, right) => right.totalBonus - left.totalBonus || right.percent - left.percent || left.name.localeCompare(right.name))
     .slice(0, SLOT_COUNT);
 }
@@ -673,7 +678,7 @@ function clearHighlightedServants() {
 function servantSlotMarkup(servant, index, totalBonus) {
   return `
     <div class="slot-filled">
-      <img class="slot-image" src="${servant.image}" alt="${escapeHtml(servant.name)}" />
+      <img class="slot-image" src="${servant.image}" data-fallback-src="${servant.fallbackImage}" alt="${escapeHtml(servant.name)}" />
       <div class="slot-content">
         <div class="slot-label">Servant ${index + 1}</div>
         <div class="slot-name">${escapeHtml(servant.name)}</div>
@@ -690,7 +695,7 @@ function servantSlotMarkup(servant, index, totalBonus) {
 function ceSlotMarkup(ce, index) {
   return `
     <div class="slot-filled">
-      <img class="slot-image" src="${ce.image}" alt="${escapeHtml(ce.name)}" />
+      <img class="slot-image" src="${ce.image}" data-fallback-src="${ce.fallbackImage}" alt="${escapeHtml(ce.name)}" />
       <div class="slot-content">
         <div class="slot-label">Craft Essence ${index + 1}</div>
         <div class="slot-name">${escapeHtml(ce.name)}</div>
@@ -715,7 +720,7 @@ function servantCardMarkup(servant) {
     <article class="sidebar-card">
       <div class="sidebar-card-body">
         <div class="sidebar-card-header">
-          <img class="sidebar-thumb" src="${servant.image}" alt="${escapeHtml(servant.name)}" />
+          <img class="sidebar-thumb" src="${servant.image}" data-fallback-src="${servant.fallbackImage}" alt="${escapeHtml(servant.name)}" />
           <div>
             <div class="fw-semibold mb-1">${escapeHtml(servant.name)}</div>
             <div class="class-row mb-3">
@@ -735,7 +740,7 @@ function ceCardMarkup(ce) {
     <article class="sidebar-card" title="${escapeHtml(ce.detail)}">
       <div class="sidebar-card-body">
         <div class="sidebar-card-header">
-          <img class="sidebar-thumb" src="${ce.image}" alt="${escapeHtml(ce.name)}" />
+          <img class="sidebar-thumb" src="${ce.image}" data-fallback-src="${ce.fallbackImage}" alt="${escapeHtml(ce.name)}" />
           <div>
             <div class="fw-semibold mb-1">${escapeHtml(ce.name)}</div>
             <div class="detail-clamp mb-2">${escapeHtml(ce.detail)}</div>
@@ -751,12 +756,12 @@ function ceCardMarkup(ce) {
 }
 
 function recommendationMarkup(ce) {
-  const affectedServants = state.selectedServants.filter((servant, slotIndex) => doesCEAffectServant(ce, servant, -1, slotIndex, true));
+  const affectedServants = ce.affectedServants || [];
   return `
     <article class="recommendation-card" data-recommendation-id="${ce.id}" title="${escapeHtml(ce.detail)}">
       <div class="recommendation-card-body">
         <div class="recommendation-card-header mb-3">
-          <img class="recommendation-thumb" src="${ce.image}" alt="${escapeHtml(ce.name)}" />
+          <img class="recommendation-thumb" src="${ce.image}" data-fallback-src="${ce.fallbackImage}" alt="${escapeHtml(ce.name)}" />
           <div>
             <div class="fw-semibold mb-2">${escapeHtml(ce.name)}</div>
             <div class="recommendation-badges mb-2">
@@ -791,7 +796,7 @@ function extractPrimaryImage(entry, type) {
   }
 
   const label = type === "servant" ? "SVT" : "CE";
-  return `https://placehold.co/400x400/10141c/e9ecef?text=${label}`;
+  return createTextImage(label, type === "servant" ? "#1d3557" : "#5a189a");
 }
 
 function firstImageFromGroup(group) {
@@ -818,6 +823,33 @@ function createClassIcon(className) {
   const normalized = normalizeText(className || "unknown") || "unknown";
   if (classIconCache.has(normalized)) {
     return classIconCache.get(normalized);
+  }
+
+  function createTextImage(label, color) {
+    const safeLabel = escapeHtml(
+      String(label || "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(" ")
+        .slice(0, 18) || "FGO"
+    );
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="24" fill="${color}"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">${safeLabel}</text></svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  }
+
+  function bindImageFallbacks(root) {
+    root.querySelectorAll("img[data-fallback-src]").forEach((image) => {
+      image.addEventListener(
+        "error",
+        () => {
+          if (image.dataset.fallbackSrc && image.src !== image.dataset.fallbackSrc) {
+            image.src = image.dataset.fallbackSrc;
+          }
+        },
+        { once: true }
+      );
+    });
   }
 
   const canvas = document.createElement("canvas");
