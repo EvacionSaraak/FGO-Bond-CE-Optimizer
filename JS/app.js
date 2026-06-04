@@ -824,34 +824,6 @@ function createClassIcon(className) {
   if (classIconCache.has(normalized)) {
     return classIconCache.get(normalized);
   }
-
-  function createTextImage(label, color) {
-    const safeLabel = escapeHtml(
-      String(label || "")
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .join(" ")
-        .slice(0, 18) || "FGO"
-    );
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="24" fill="${color}"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">${safeLabel}</text></svg>`;
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-  }
-
-  function bindImageFallbacks(root) {
-    root.querySelectorAll("img[data-fallback-src]").forEach((image) => {
-      image.addEventListener(
-        "error",
-        () => {
-          if (image.dataset.fallbackSrc && image.src !== image.dataset.fallbackSrc) {
-            image.src = image.dataset.fallbackSrc;
-          }
-        },
-        { once: true }
-      );
-    });
-  }
-
   const canvas = document.createElement("canvas");
   canvas.width = CLASS_ICON_SIZE;
   canvas.height = CLASS_ICON_SIZE;
@@ -874,6 +846,33 @@ function createClassIcon(className) {
   const dataUrl = canvas.toDataURL("image/png");
   classIconCache.set(normalized, dataUrl);
   return dataUrl;
+}
+
+function createTextImage(label, color) {
+  const safeLabel = escapeHtml(
+    String(label || "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(" ")
+      .slice(0, 18) || "FGO"
+  );
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" rx="24" fill="${color}"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">${safeLabel}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function bindImageFallbacks(root) {
+  root.querySelectorAll("img[data-fallback-src]").forEach((image) => {
+    image.addEventListener(
+      "error",
+      () => {
+        if (image.dataset.fallbackSrc && image.src !== image.dataset.fallbackSrc) {
+          image.src = image.dataset.fallbackSrc;
+        }
+      },
+      { once: true }
+    );
+  });
 }
 
 function classAbbreviation(className) {
