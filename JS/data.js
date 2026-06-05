@@ -197,7 +197,5 @@ function normalizeCEs(craftEssences) {
           );
         })
       );
-      return ce.percent > 0 && (hasBondText || hasBondFunction) && !isServantPersonalBondCE(ce.detail, ce.raw);
-    })
-    .sort((left, right) => left.id - right.id);
+      return ce.percent > 0 && (hasBondText || hasBondFunction) && !isServantPersonalBondCE(ce.detail, ce.raw); }).sort((left, right) => left.id - right.id);
 }
