@@ -1,32 +1,23 @@
 function servantSlotMarkup(servant, index, totalBonus) { const isMaxBond = Boolean(state.selectedServantBond15[index]); return `
-  <div class="slot-filled ${isMaxBond ? "slot-max-bond" : ""}" data-servant-id="${servant.id}">
-    <img class="slot-image" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
-    <div class="slot-content">
-      <div class="slot-label">Servant ${index + 1}</div>
-      <div class="slot-name">${escapeHtml(servant.name)}</div>
-      <div class="slot-meta class-row"><img class="class-icon" src="${escapeHtml(servant.classIcon)}" alt="">${escapeHtml(toTitleCase(servant.className))}</div>
-      <button type="button" class="max-bond-toggle ${isMaxBond ? "active" : ""}" data-servant-bond15-toggle="${index}" aria-pressed="${isMaxBond ? "true" : "false"}">${isMaxBond ? "Max Bond: ON" : "Mark Max Bond"}</button>
-      <div class="selection-total">Total bond bonus: ${formatPercent(totalBonus)}%</div>
+  <div class="slot-filled servant-slot-basic ${isMaxBond ? "slot-max-bond" : ""}" data-servant-id="${servant.id}" title="${escapeHtml(servant.name)} | ${escapeHtml(toTitleCase(servant.className))} | Total bond bonus: ${formatPercent(totalBonus)}%">
+    <img class="slot-image servant-basic-image" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
+    <div class="servant-basic-overlay">
+      <button type="button" class="max-bond-toggle ${isMaxBond ? "active" : ""}" data-servant-bond15-toggle="${index}" aria-pressed="${isMaxBond ? "true" : "false"}" title="${isMaxBond ? "Unmark Max Bond" : "Mark Max Bond"}">${isMaxBond ? "MAX" : "BOND"}</button>
     </div>
   </div>
 `; }
 
-function ceSlotMarkup(ce, index, isOwned) { const effectivePercent = isOwned && ce.ownPercent > 0 ? ce.ownPercent : ce.percent, basePercent = isOwned && ce.ownBasePercent > 0 ? ce.ownBasePercent : ce.basePercent; return `
-  <div class="slot-filled" title="${escapeHtml(ce.detail || "")}">
-    <img class="slot-image" src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
-    <div class="slot-content">
-      <div class="slot-label">Craft Essence ${index + 1}</div>
-      <div class="slot-name">${escapeHtml(ce.name)}</div>
-      <div class="slot-meta">${escapeHtml(getCEEffectTag({ ...ce, basePercent, percent: effectivePercent }))}</div>
-    </div>
+function ceSlotMarkup(ce, index, isOwned) { const effectivePercent = isOwned && ce.ownPercent > 0 ? ce.ownPercent : ce.percent, basePercent = isOwned && ce.ownBasePercent > 0 ? ce.ownBasePercent : ce.basePercent, tag = getCEEffectTag({ ...ce, basePercent, percent: effectivePercent }); return `
+  <div class="slot-filled ce-slot-basic" title="${escapeHtml(ce.name)} | ${escapeHtml(tag)} | ${escapeHtml(ce.detail || "")}">
+    <img class="slot-image ce-basic-image" src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
+    <div class="ce-basic-label">${escapeHtml(ce.name)}</div>
   </div>
 `; }
 
 function emptySlotMarkup(kind, index) { return `
-  <div class="slot-empty">
+  <div class="slot-empty" title="Click to choose a ${kind.toLowerCase()}.">
     <div class="slot-label">${kind} ${index + 1}</div>
     <div class="display-6">+</div>
-    <div class="small">Click to choose a ${kind.toLowerCase()}.</div>
   </div>
 `; }
 
