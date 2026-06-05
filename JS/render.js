@@ -23,7 +23,7 @@ function renderServantSlots() {
           <button class="slot-button" type="button" data-slot-type="servant" data-slot-index="${index}">
             ${servant ? servantSlotMarkup(servant, index, totalBonus) : emptySlotMarkup("Servant", index)}
           </button>
-          ${servant ? `<label class="form-check-label small mt-2 d-inline-flex align-items-center"><input class="form-check-input me-1" type="checkbox" data-servant-bond15-toggle="${index}" ${state.selectedServantBond15[index] ? "checked" : ""}>Bond 15 (+25% to other party members)</label>` : ""}
+          ${servant ? `<label class="form-check-label small mt-2 d-inline-flex align-items-center"><input class="form-check-input me-1" type="checkbox" data-servant-bond15-toggle="${index}" ${state.selectedServantBond15[index] ? "checked" : ""}>Max bond reached (Bond 15, +25% to other party members)</label>` : ""}
         </div>
       `;
     })

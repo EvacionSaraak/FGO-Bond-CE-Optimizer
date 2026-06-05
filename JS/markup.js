@@ -1,4 +1,7 @@
 function servantSlotMarkup(servant, index, totalBonus) {
+  const maxBondNote = state.selectedServantBond15[index]
+    ? `<div class="slot-meta text-success">Max bond reached</div>`
+    : "";
   return `
     <div class="slot-filled" data-servant-id="${servant.id}">
       <img class="slot-image" src="${servant.image}" data-fallback-src="${servant.fallbackImage}" alt="${escapeHtml(servant.name)}" />
@@ -9,6 +12,7 @@ function servantSlotMarkup(servant, index, totalBonus) {
           <img class="class-icon" src="${servant.classIcon}" alt="${escapeHtml(servant.className)} icon" />
           <span>${escapeHtml(toTitleCase(servant.className))}</span>
         </div>
+        ${maxBondNote}
         <div class="selection-total">Total bond bonus: ${totalBonus}%</div>
       </div>
     </div>
