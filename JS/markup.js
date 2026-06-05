@@ -1,5 +1,5 @@
-function servantSlotMarkup(servant, index, totalBonus) { const maxBondNote = state.selectedServantBond15[index] ? `<div class="badge text-bg-warning text-dark mt-1">Max bond reached</div>` : ""; return `
-  <div class="slot-filled" data-servant-id="${servant.id}">
+function servantSlotMarkup(servant, index, totalBonus) { const isMaxBond = Boolean(state.selectedServantBond15[index]), maxBondNote = isMaxBond ? `<div class="max-bond-indicator">Max Bond — ignored by CE optimizer</div>` : ""; return `
+  <div class="slot-filled ${isMaxBond ? "slot-max-bond" : ""}" data-servant-id="${servant.id}">
     <img class="slot-image" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
     <div class="slot-content">
       <div class="slot-label">Servant ${index + 1}</div>
