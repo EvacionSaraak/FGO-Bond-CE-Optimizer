@@ -1,8 +1,9 @@
 const API_RETRY_BASE_DELAY_MS = 1500;
 const API_RETRY_MAX_DELAY_MS = 30000;
+const IMAGE_PRELOAD_CONCURRENCY = 10;
 
 async function loadAtlasData() {
-  // Load servants first so the sidebar is usable while CEs are still downloading.
+  // Keep sidebars blocked until servant/CE images are preloaded to avoid re-fetch flicker on selection.
   state.servantSidebarLoading = true;
   state.ceSidebarLoading = true;
   state.servantSidebarLoadingProgress = 20;
@@ -30,9 +31,8 @@ async function loadAtlasData() {
     }
 
     state.servants = normalizeServants(servants);
-    state.servantSidebarLoading = false;
-    state.servantSidebarLoadingProgress = 100;
-    state.ceSidebarLoadingProgress = 40;
+    state.servantSidebarLoadingProgress = 50;
+    state.ceSidebarLoadingProgress = 50;
     renderServantSidebar();
 
     // Load the lore CE export so profile comments are available for bond CE detection.
@@ -52,7 +52,36 @@ async function loadAtlasData() {
     }
 
     state.ces = normalizeCEs(craftEssences);
+    state.servantSidebarLoadingProgress = 70;
+    state.ceSidebarLoadingProgress = 70;
+    renderServantSidebar();
+    renderCESidebar();
+
+    await preloadImageUrls(
+      [
+        ...state.servants.map((servant) => servant.image),
+        ...state.ces.map((ce) => ce.image)
+      ],
+      {
+        updateProgress: (completed, total) => {
+          if (!total) {
+            return;
+          }
+          const progress = 70 + Math.round((completed / total) * 30);
+          state.servantSidebarLoadingProgress = progress;
+          state.ceSidebarLoadingProgress = progress;
+          if (completed === 0 || completed === total || completed % 25 === 0) {
+            setStatus(`Preloading images... ${completed}/${total}`, "secondary");
+          }
+          renderServantSidebar();
+          renderCESidebar();
+        }
+      }
+    );
+
+    state.servantSidebarLoading = false;
     state.ceSidebarLoading = false;
+    state.servantSidebarLoadingProgress = 100;
     state.ceSidebarLoadingProgress = 100;
     state.dataMode = loadedFromFallback ? "fallback" : "remote";
     setStatus(
@@ -107,6 +136,45 @@ async function fetchLocalJson(url, { resourceLabel }) {
 function wait(milliseconds) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, milliseconds);
+  });
+}
+
+async function preloadImageUrls(urls, { updateProgress } = {}) {
+  const uniqueUrls = [...new Set((Array.isArray(urls) ? urls : []).filter((url) => isPreloadableImageUrl(url)))];
+  const total = uniqueUrls.length;
+  updateProgress?.(0, total);
+  if (!total) {
+    return;
+  }
+
+  let completed = 0;
+  const queue = [...uniqueUrls];
+  const workerCount = Math.min(IMAGE_PRELOAD_CONCURRENCY, total);
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (queue.length) {
+      const url = queue.pop();
+      await preloadImage(url);
+      completed += 1;
+      updateProgress?.(completed, total);
+    }
+  });
+  await Promise.all(workers);
+}
+
+function isPreloadableImageUrl(url) {
+  return typeof url === "string" && url.length > 0 && !url.startsWith("data:");
+}
+
+function preloadImage(url) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    const done = () => resolve();
+    image.onload = done;
+    image.onerror = done;
+    image.src = url;
+    if (image.complete) {
+      resolve();
+    }
   });
 }
 
