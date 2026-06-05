@@ -1,6 +1,6 @@
 window.addEventListener("DOMContentLoaded", init);
 
-async function init() { cacheDom(); bindEvents(); initServantTooltip(); renderAll(); await loadAtlasData(); renderAll(); }
+async function init(){cacheDom();bindEvents();initServantTooltip();initCETooltip();renderAll();await loadAtlasData();renderAll();}
 
 function cacheDom() {
   dom.loadingStatus = document.getElementById("loading-status");
