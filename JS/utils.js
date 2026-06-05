@@ -30,13 +30,16 @@ function getBondMLBMultiplier(ceName=""){return isPremultipliedBondPercentCE(ceN
 function isDefaultOwnCE(ce){return normalizeText(ce?.name||"")==="chaldea teatime";}
 function getCEBondPercent(ce,ceSlotIndex=null){if(!ce)return 0;const isOwned=ceSlotIndex!==null&&Boolean(state.selectedCEOwned[ceSlotIndex]);if(isOwned&&Number(ce.ownPercent)>0)return ce.ownPercent;return ce.percent;}
 function getOptimizedCEBondPercent(ce){if(!ce)return 0;return isDefaultOwnCE(ce)&&Number(ce.ownPercent)>0?ce.ownPercent:ce.percent;}
+function isMashBondSupportServant(servant){const name=normalizeText(servant?.name||servant?.normalizedName||"");return name==="mash kyrielight"||name==="mashu kyrielight"||name.includes("mash kyrielight")||name.includes("mashu kyrielight");}
 
 const JP_CE_CONDITION_ALIASES={
   "秩序":{label:"Lawful",aliases:["lawful"]},
   "混沌":{label:"Chaotic",aliases:["chaotic"]},
   "中立":{label:"Neutral",aliases:["neutral"]},
   "善":{label:"Good",aliases:["good"]},
-  "悪":{label:"Evil",aliases:["evil"]},
+  "悪":{label:"Evil",aliases:["evil","evil alignment"]},
+  "悪属性":{label:"Evil",aliases:["evil","evil alignment"]},
+  "悪特性":{label:"Evil",aliases:["evil","evil alignment"]},
   "中庸":{label:"Balanced",aliases:["balanced"]},
   "狂":{label:"Madness",aliases:["madness"]},
   "夏":{label:"Summer",aliases:["summer"]},
@@ -46,7 +49,8 @@ const JP_CE_CONDITION_ALIASES={
   "天":{label:"Sky",aliases:["sky"]},
   "地":{label:"Earth",aliases:["earth"]},
   "人":{label:"Man",aliases:["man"]},
-  "星":{label:"Star",aliases:["star"]},
+  "星":{label:"Star",aliases:["star","star attribute"]},
+  "星属性":{label:"Star",aliases:["star","star attribute"]},
   "獣":{label:"Beast",aliases:["beast"]},
   "七騎士":{label:"Seven Knights",aliases:["seven knights","standard class","standard classes"],classes:["saber","archer","lancer","rider","caster","assassin","berserker"]},
   "ケモノ科":{label:"Animal Characteristic",aliases:["animal characteristic","animal characteristics","animal characteristics servant","animal trait","kemono"]},
@@ -69,14 +73,17 @@ const JP_CE_CONDITION_ALIASES={
 
 function getJapaneseBondConditionGroups(detail){
   const text=String(detail||""),groups=[];
-  for(const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g)){
-    const alternatives=String(match[1]||"").split(/(?:または|又は| or )/i);
+  const addGroupFromText=(raw)=>{
+    const source=String(raw||"");
+    const alternatives=source.split(/(?:または|又は|\/| or )/i);
     for(const alternative of alternatives){
       const conditions=Object.entries(JP_CE_CONDITION_ALIASES).filter(([jp])=>alternative.includes(jp)).map(([,entry])=>entry.label);
       if(conditions.length)groups.push([...new Set(conditions)]);
     }
-  }
-  return groups;
+  };
+  for(const match of text.matchAll(/クエストクリア時に得られる(.+?)絆/g))addGroupFromText(match[1]);
+  for(const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g))addGroupFromText(match[1]);
+  return groups.filter((group,index,self)=>self.findIndex((other)=>other.join("|")===group.join("|"))===index);
 }
 
 function compactTrait(value){return normalizeText(String(value||"").replace(/[\s_-]+/g,""));}
@@ -108,9 +115,10 @@ function doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex,ignoreExcep
 function getServantBondBonus(servantSlotIndex){
   const servant=state.selectedServants[servantSlotIndex];
   if(!servant)return 0;
+  const mashPassiveBonus=state.selectedServants.some((selectedServant,selectedSlotIndex)=>selectedServant&&selectedSlotIndex!==servantSlotIndex&&isMashBondSupportServant(selectedServant))?20:0;
   const partyBond15Bonus=state.selectedServants.reduce((sum,selectedServant,selectedSlotIndex)=>{if(!selectedServant||selectedSlotIndex===servantSlotIndex||!state.selectedServantBond15[selectedSlotIndex])return sum;return sum+25;},0);
   const ceBonus=state.selectedCEs.reduce((sum,ce,ceSlotIndex)=>{if(!ce||!doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex))return sum;return sum+getCEBondPercent(ce,ceSlotIndex);},0);
-  return ceBonus+partyBond15Bonus;
+  return ceBonus+partyBond15Bonus+mashPassiveBonus;
 }
 
 function translateJapaneseCEDetail(detail){
