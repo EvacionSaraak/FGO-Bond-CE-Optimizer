@@ -403,7 +403,7 @@ body {
 .sidebar-card-header,
 .recommendation-card-header {
   display: grid;
-  grid-template-columns: 4.5rem 1fr;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
   gap: 0.9rem;
   align-items: start;
 }
@@ -418,11 +418,39 @@ body {
   border: 1px solid var(--border);
 }
 
+.servant-sidebar-card .sidebar-card-body {
+  padding: 0.85rem;
+}
+
+.servant-card-top {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.servant-card-thumb {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.75rem;
+}
+
+.servant-card-main {
+  min-width: 0;
+}
+
+.servant-card-name {
+  color: var(--text);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .class-row {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .class-icon {
@@ -430,18 +458,21 @@ body {
   height: 1.4rem;
   border-radius: 999px;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
+  flex: 0 0 auto;
 }
 
 .servant-card-details {
   display: grid;
-  gap: 0.28rem;
+  gap: 0.35rem;
   color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
 }
 
 .servant-card-details div {
   display: grid;
-  grid-template-columns: 4.8rem 1fr;
-  gap: 0.45rem;
+  grid-template-columns: 5.4rem minmax(0, 1fr);
+  gap: 0.55rem;
   align-items: baseline;
 }
 
@@ -453,6 +484,7 @@ body {
 .servant-card-details strong {
   color: var(--text);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .detail-clamp {
@@ -501,7 +533,7 @@ body {
 
 .affected-servant-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.5rem;
   align-items: center;
   color: var(--muted);
@@ -509,6 +541,11 @@ body {
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 0.55rem;
   padding: 0.35rem 0.5rem;
+}
+
+.affected-servant-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .servant-tooltip {
@@ -575,6 +612,15 @@ body {
     top: auto;
     max-height: 70vh;
   }
+
+  .servant-card-top {
+    grid-template-columns: 3.75rem minmax(0, 1fr);
+  }
+
+  .servant-card-thumb {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
 }
 
 @media (max-width: 767.98px) {
@@ -584,8 +630,15 @@ body {
   .selection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .sidebar-card-header,
-  .recommendation-card-header { grid-template-columns: 3.75rem 1fr; }
+  .recommendation-card-header { grid-template-columns: 3.75rem minmax(0, 1fr); }
 
   .sidebar-thumb,
-  .recommendation-thumb { width: 3.75rem; height: 3.75rem; }
+  .recommendation-thumb {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+
+  .servant-card-details div {
+    grid-template-columns: 4.8rem minmax(0, 1fr);
+  }
 }
