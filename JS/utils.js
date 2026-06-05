@@ -63,19 +63,19 @@ function extractBondPercent(detail) {
   return matches.length ? Math.max(...matches) : 0;
 }
 
-// Fallback for when skill detail uses {0}% placeholders instead of real values.
-// Reads from the functions/svals structure of the skill array directly.
 function extractBondPercentFromFunctions(skills) {
-  if (!Array.isArray(skills)) { return 0; }
+  if (!Array.isArray(skills)) {
+    return 0;
+  }
 
   let maxPercent = 0;
 
   const isBondGainFunction = (func) => {
     const type = normalizeText(func?.funcType || "");
+
     return (
-      type === "bondgain" ||
       type === "servantfriendshipup" ||
-      type.includes("friendship")
+      type === "bondgain"
     );
   };
 
@@ -83,26 +83,31 @@ function extractBondPercentFromFunctions(skills) {
     const functions = Array.isArray(skill.functions) ? skill.functions : [];
 
     for (const func of functions) {
-      if (!isBondGainFunction(func)) { continue; }
+      if (!isBondGainFunction(func)) {
+        continue;
+      }
 
       const svals = Array.isArray(func.svals) ? func.svals : [];
 
       for (const sval of svals) {
-        const raw =
-          Number(
-            sval?.Value ??
-            sval?.value ??
-            sval?.Rate ??
-            sval?.rate ??
-            sval?.Turn ??
-            0
-          );
+        const raw = Number(
+          sval?.Value ??
+          sval?.value ??
+          sval?.Rate ??
+          sval?.rate ??
+          sval?.val ??
+          0
+        );
 
-        if (!raw) { continue; }
+        if (!raw) {
+          continue;
+        }
 
         const percent = raw > 100 ? raw / 100 : raw;
 
-        if (percent > maxPercent) { maxPercent = percent; }
+        if (percent > maxPercent) {
+          maxPercent = percent;
+        }
       }
     }
   }
