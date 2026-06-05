@@ -1,5 +1,11 @@
 async function loadAtlasData() {
   // Load servants first so the sidebar is usable while CEs are still downloading.
+  state.servantSidebarLoading = true;
+  state.ceSidebarLoading = true;
+  state.servantSidebarLoadingProgress = 20;
+  state.ceSidebarLoadingProgress = 5;
+  renderServantSidebar();
+  renderCESidebar();
   try {
     const servantResponse = await fetch(SERVANT_API_URL);
     if (!servantResponse.ok) {
@@ -7,6 +13,8 @@ async function loadAtlasData() {
     }
     state.servants = normalizeServants(await servantResponse.json());
     state.servantSidebarLoading = false;
+    state.servantSidebarLoadingProgress = 100;
+    state.ceSidebarLoadingProgress = 40;
     renderServantSidebar();
     setStatus("Servants loaded. Loading Craft Essences...", "secondary");
   } catch (_error) {
@@ -16,12 +24,15 @@ async function loadAtlasData() {
 
   // Load CEs from the targeted search endpoint (bond-gain CEs only, much smaller).
   try {
+    state.ceSidebarLoadingProgress = 70;
+    renderCESidebar();
     const ceResponse = await fetch(CE_API_URL);
     if (!ceResponse.ok) {
       throw new Error("Atlas Academy CE request failed.");
     }
     state.ces = normalizeCEs(await ceResponse.json());
     state.ceSidebarLoading = false;
+    state.ceSidebarLoadingProgress = 100;
     state.dataMode = "remote";
     setStatus(
       `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
@@ -29,16 +40,11 @@ async function loadAtlasData() {
     );
     renderCESidebar();
   } catch (_error) {
-    // Servants already loaded; only fall back the CE portion.
-    try {
-      const ceResponse = await fetch("JSON/fallback-ces.json");
-      state.ces = normalizeCEs(await ceResponse.json());
-    } catch (_fallbackError) {
-      state.ces = [];
-    }
+    state.ces = [];
     state.ceSidebarLoading = false;
+    state.ceSidebarLoadingProgress = 100;
     setStatus(
-      "Servants loaded from Atlas Academy. Craft Essence data fell back to the local dataset.",
+      "Servants loaded from Atlas Academy. Craft Essence data could not be loaded, so CE selection is unavailable.",
       "warning"
     );
     renderCESidebar();
@@ -47,21 +53,17 @@ async function loadAtlasData() {
 
 async function loadFallbackData() {
   try {
-    const [servantResponse, ceResponse] = await Promise.all([
-      fetch("JSON/fallback-servants.json"),
-      fetch("JSON/fallback-ces.json")
-    ]);
-    const [servants, craftEssences] = await Promise.all([
-      servantResponse.json(),
-      ceResponse.json()
-    ]);
+    const servantResponse = await fetch("JSON/fallback-servants.json");
+    const servants = await servantResponse.json();
     state.servants = normalizeServants(servants);
-    state.ces = normalizeCEs(craftEssences);
+    state.ces = [];
     state.servantSidebarLoading = false;
     state.ceSidebarLoading = false;
+    state.servantSidebarLoadingProgress = 100;
+    state.ceSidebarLoadingProgress = 100;
     state.dataMode = "fallback";
     setStatus(
-      "Atlas Academy data could not be reached in this environment, so a small embedded fallback dataset is being used for local verification. The page still fetches the live API during normal use.",
+      "Atlas Academy servants could not be reached, so a local servant dataset is used. Craft Essences require Atlas Academy data and are currently unavailable.",
       "warning"
     );
   } catch (_error) {
@@ -69,8 +71,10 @@ async function loadFallbackData() {
     state.ces = [];
     state.servantSidebarLoading = false;
     state.ceSidebarLoading = false;
+    state.servantSidebarLoadingProgress = 100;
+    state.ceSidebarLoadingProgress = 100;
     state.dataMode = "fallback";
-    setStatus("Failed to load any data. Please refresh the page.", "danger");
+    setStatus("Failed to load data. Please refresh the page.", "danger");
   }
 }
 

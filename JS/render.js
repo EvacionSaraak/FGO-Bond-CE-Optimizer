@@ -115,7 +115,7 @@ function renderServantSidebar() {
 
   if (isLoading) {
     dom.servantFilterSummary.textContent = "Loading servants...";
-    dom.servantResults.innerHTML = sidebarLoadingMarkup("Loading servants");
+    dom.servantResults.innerHTML = sidebarLoadingMarkup("Loading servants", state.servantSidebarLoadingProgress);
     return;
   }
 
@@ -160,7 +160,13 @@ function renderCESidebar() {
   dom.ceSlotLabel.textContent = slotIndex !== null ? `CE Slot ${slotIndex + 1}` : "Any Slot";
   if (isLoading) {
     dom.ceFilterSummary.textContent = "Loading Craft Essences...";
-    dom.ceResults.innerHTML = sidebarLoadingMarkup("Loading Craft Essences");
+    dom.ceResults.innerHTML = sidebarLoadingMarkup("Loading Craft Essences", state.ceSidebarLoadingProgress);
+    return;
+  }
+
+  if (!state.ces.length) {
+    dom.ceFilterSummary.textContent = "Craft Essence data unavailable.";
+    dom.ceResults.innerHTML = `<div class="empty-state">Craft Essence data is unavailable right now. Please refresh once Atlas Academy is reachable.</div>`;
     return;
   }
 
@@ -187,10 +193,13 @@ function renderCESidebar() {
   });
 }
 
-function sidebarLoadingMarkup(label) {
+function sidebarLoadingMarkup(label, progress) {
+  const clampedProgress = Math.max(0, Math.min(100, Math.round(Number(progress) || 0)));
   return `
     <div class="empty-state sidebar-loading-indicator" role="status" aria-live="polite">
-      <span class="sidebar-loading-spinner" aria-hidden="true"></span>
+      <span class="sidebar-loading-ring" style="--loading-progress:${clampedProgress}" aria-hidden="true">
+        <span class="sidebar-loading-ring-core">${clampedProgress}%</span>
+      </span>
       <span>${label}...</span>
     </div>
   `;

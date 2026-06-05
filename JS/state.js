@@ -35,6 +35,8 @@ const state = {
   ceSearch: "",
   servantSidebarLoading: true,
   ceSidebarLoading: true,
+  servantSidebarLoadingProgress: 10,
+  ceSidebarLoadingProgress: 5,
   servantOptimizationEnabled: false,
   recommendations: [],
   dataMode: "remote"
