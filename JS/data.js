@@ -109,7 +109,13 @@ function normalizeServants(servants){
     .filter((servant)=>servant&&servant.name&&servant.type!=="enemy"&&servant.collectionNo!==0)
     .map((servant)=>{
       const rawTraits=Array.isArray(servant.traits)?servant.traits:[];
-      const traitTokens=rawTraits.flatMap((trait)=>[
+
+      const displayTraits=[...new Set(rawTraits
+        .map((trait)=>humanizeTrait(trait?.nameEn||trait?.name||trait?.detail||trait?.displayName||trait?.shortName||""))
+        .filter(Boolean)
+      )];
+
+      const traitTokens=[...new Set(rawTraits.flatMap((trait)=>[
         trait?.id,
         trait?.trait,
         trait?.name,
@@ -118,9 +124,12 @@ function normalizeServants(servants){
         trait?.displayName,
         trait?.shortName,
         trait?.type
-      ]).filter((value)=>value!==null&&value!==undefined&&value!=="").flatMap(getTraitTokensFromValue);
+      ]).filter((value)=>value!==null&&value!==undefined&&value!=="").flatMap(getTraitTokensFromValue))];
 
-      const traitIds=rawTraits.map((trait)=>trait?.id??trait?.trait).filter((value)=>value!==null&&value!==undefined&&value!=="");
+      const traitIds=[...new Set(rawTraits
+        .map((trait)=>trait?.id??trait?.trait)
+        .filter((value)=>value!==null&&value!==undefined&&value!=="")
+      )];
 
       return {
         id:servant.id,
@@ -137,10 +146,8 @@ function normalizeServants(servants){
           if(rawTraits.length)return rawTraits.filter((t)=>String(t?.name||"").toLowerCase().startsWith("alignment")).map((t)=>humanizeTrait(String(t.name))).filter(Boolean);
           return [];
         })(),
-        traits:[...new Set([
-          ...rawTraits.map((trait)=>humanizeTrait(trait?.name||"")).filter(Boolean),
-          ...traitTokens
-        ])],
+        traits:displayTraits,
+        traitTokens,
         traitIds,
         raw:servant
       };
