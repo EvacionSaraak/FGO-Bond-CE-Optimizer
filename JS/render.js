@@ -4,7 +4,11 @@ function renderAll() { renderServantSlots(); renderCESlots(); renderServantSideb
 function renderServantSlots() {
   dom.servantSlots.innerHTML = state.selectedServants.map((servant, index) => {
     const totalBonus = getServantBondBonus(index), activeClass = state.activeServantSlot === index ? "active-slot" : "";
-    return `<div class="selection-slot ${activeClass}" data-slot-type="servant" data-slot-index="${index}">${servant ? `<button type="button" class="btn-close remove-entry" data-remove-type="servant" data-remove-index="${index}" aria-label="Remove servant"></button>` : ""}${servant ? servantSlotMarkup(servant, index, totalBonus) : emptySlotMarkup("Servant", index)}${servant ? `<label class="small mt-2 d-flex gap-2 align-items-center"><input type="checkbox" data-servant-bond15-toggle="${index}" ${state.selectedServantBond15[index] ? "checked" : ""}> Max bond reached (Bond 15, +25% to other party members)</label>` : ""}</div>`;
+    return `<div class="selection-slot ${activeClass}" data-slot-type="servant" data-slot-index="${index}">
+      ${servant ? `<button type="button" class="btn-close remove-entry" data-remove-type="servant" data-remove-index="${index}" aria-label="Remove servant"></button>` : ""}
+      ${servant ? servantSlotMarkup(servant, index, totalBonus) : emptySlotMarkup("Servant", index)}
+      ${servant ? `<label class="small mt-2 d-flex gap-2 align-items-center slot-toggle"><input type="checkbox" data-servant-bond15-toggle="${index}" ${state.selectedServantBond15[index] ? "checked" : ""}> Max bond reached (Bond 15, +25% to other party members)</label>` : ""}
+    </div>`;
   }).join("");
   bindSlotEvents(dom.servantSlots);
   dom.servantSlots.querySelectorAll("[data-servant-bond15-toggle]").forEach((checkbox) => {
@@ -16,7 +20,11 @@ function renderServantSlots() {
 function renderCESlots() {
   dom.ceSlots.innerHTML = state.selectedCEs.map((ce, index) => {
     const activeClass = state.activeCESlot === index ? "active-slot" : "";
-    return `<div class="selection-slot ${activeClass}" data-slot-type="ce" data-slot-index="${index}">${ce ? `<button type="button" class="btn-close remove-entry" data-remove-type="ce" data-remove-index="${index}" aria-label="Remove CE"></button>` : ""}${ce ? ceSlotMarkup(ce, index, state.selectedCEOwned[index]) : emptySlotMarkup("Craft Essence", index)}${ce?.supportConditional ? `<label class="small mt-2 d-flex gap-2 align-items-center"><input type="checkbox" data-ce-owned-toggle="${index}" ${state.selectedCEOwned[index] ? "checked" : ""}> Own copy</label>` : ""}</div>`;
+    return `<div class="selection-slot ${activeClass}" data-slot-type="ce" data-slot-index="${index}">
+      ${ce ? `<button type="button" class="btn-close remove-entry" data-remove-type="ce" data-remove-index="${index}" aria-label="Remove CE"></button>` : ""}
+      ${ce ? ceSlotMarkup(ce, index, state.selectedCEOwned[index]) : emptySlotMarkup("Craft Essence", index)}
+      ${ce?.supportConditional ? `<label class="small mt-2 d-flex gap-2 align-items-center slot-toggle"><input type="checkbox" data-ce-owned-toggle="${index}" ${state.selectedCEOwned[index] ? "checked" : ""}> Own copy</label>` : ""}
+    </div>`;
   }).join("");
   bindSlotEvents(dom.ceSlots);
   dom.ceSlots.querySelectorAll("[data-ce-owned-toggle]").forEach((checkbox) => {
@@ -43,6 +51,8 @@ function bindSlotEvents(container) {
   });
 }
 
+function getNextEmptyServantSlotIndex() { return state.selectedServants.findIndex((entry) => entry === null); }
+
 function renderServantSidebar() {
   dom.servantSidebar.classList.remove("d-none");
   const isLoading = state.servantSidebarLoading;
@@ -51,28 +61,35 @@ function renderServantSidebar() {
   dom.servantPageSize.disabled = isLoading;
   dom.servantSearch.setAttribute("aria-busy", String(isLoading));
   dom.servantResults.classList.toggle("sidebar-loading-results", isLoading);
-  const slotIndex = state.activeServantSlot;
-  dom.servantSlotLabel.textContent = slotIndex !== null ? `Slot ${slotIndex + 1}` : "Any Slot";
-  const visibleServants = isLoading ? [] : getVisibleServantsForSidebar(slotIndex ?? -1), totalServants = visibleServants.length, pageSize = Math.max(1, Number(state.servantSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]), totalPages = Math.max(1, Math.ceil(totalServants / pageSize)), currentPage = Math.min(Math.max(1, state.servantSidebarPage), totalPages);
+
+  const emptySlotIndex = getNextEmptyServantSlotIndex();
+  dom.servantSlotLabel.textContent = emptySlotIndex === -1 ? "No Empty Slots" : `Next Empty Slot ${emptySlotIndex + 1}`;
+
+  const visibleServants = isLoading ? [] : getVisibleServantsForSidebar(-1), totalServants = visibleServants.length, pageSize = Math.max(1, Number(state.servantSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]), totalPages = Math.max(1, Math.ceil(totalServants / pageSize)), currentPage = Math.min(Math.max(1, state.servantSidebarPage), totalPages);
   state.servantSidebarPage = currentPage;
+
   const pageStart = totalServants ? (currentPage - 1) * pageSize : 0, pagedServants = visibleServants.slice(pageStart, pageStart + pageSize);
   dom.servantPageSize.value = String(pageSize);
   dom.servantPageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
   dom.servantPagePrev.disabled = isLoading || currentPage <= 1;
   dom.servantPageNext.disabled = isLoading || currentPage >= totalPages;
   dom.servantFilterSummary.textContent = state.servantOptimizationEnabled ? `Showing ${pagedServants.length} of ${totalServants} servants affected by all selected Craft Essences.` : `Showing ${pagedServants.length} of ${totalServants} servants matching the current search.`;
+
   if (isLoading) { dom.servantFilterSummary.textContent = "Loading servants..."; dom.servantResults.innerHTML = sidebarLoadingMarkup("Loading servants", state.servantSidebarLoadingProgress); dom.servantPageLabel.textContent = "Page 1 of 1"; dom.servantPagePrev.disabled = true; dom.servantPageNext.disabled = true; return; }
-  const targetIndex = getTargetServantSlotIndex();
-  dom.servantResults.innerHTML = pagedServants.length ? pagedServants.map((servant) => servantCardMarkup(servant, !canAddServantToSelection(servant.id, targetIndex))).join("") : `<div class="text-muted small py-3">No servants match the current search and CE filters.</div>`;
+
+  dom.servantResults.innerHTML = pagedServants.length ? pagedServants.map((servant) => {
+    const isDisabled = emptySlotIndex === -1 || !canAddServantToSelection(servant.id, emptySlotIndex);
+    return servantCardMarkup(servant, isDisabled);
+  }).join("") : `<div class="empty-state">No servants match the current search and CE filters.</div>`;
+
   dom.servantResults.querySelectorAll("[data-add-servant]").forEach((button) => {
     button.addEventListener("click", () => {
-      const servantId = Number(button.dataset.addServant), servant = state.servants.find((entry) => entry.id === servantId);
-      if (!servant) return;
-      const targetIndex = getTargetServantSlotIndex();
+      const servantId = Number(button.dataset.addServant), servant = state.servants.find((entry) => entry.id === servantId), targetIndex = getNextEmptyServantSlotIndex();
+      if (!servant || targetIndex === -1) return;
       if (!canAddServantToSelection(servantId, targetIndex)) return;
-      const previousServantId = state.selectedServants[targetIndex]?.id;
       state.selectedServants[targetIndex] = servant;
-      if (previousServantId !== servantId) state.selectedServantBond15[targetIndex] = false;
+      state.selectedServantBond15[targetIndex] = false;
+      state.activeServantSlot = null;
       state.servantOptimizationEnabled = false;
       renderAll();
     });
@@ -87,19 +104,24 @@ function renderCESidebar() {
   if (dom.cePageSize) dom.cePageSize.disabled = isLoading;
   dom.ceSearch.setAttribute("aria-busy", String(isLoading));
   dom.ceResults.classList.toggle("sidebar-loading-results", isLoading);
+
   const slotIndex = state.activeCESlot;
   dom.ceSlotLabel.textContent = slotIndex !== null ? `CE Slot ${slotIndex + 1}` : "Any Slot";
+
   if (isLoading) { dom.ceFilterSummary.textContent = "Loading Craft Essences..."; dom.ceResults.innerHTML = sidebarLoadingMarkup("Loading Craft Essences", state.ceSidebarLoadingProgress); if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1"; if (dom.cePagePrev) dom.cePagePrev.disabled = true; if (dom.cePageNext) dom.cePageNext.disabled = true; return; }
-  if (!state.ces.length) { dom.ceFilterSummary.textContent = "No Craft Essences available."; dom.ceResults.innerHTML = `<div class="text-muted small py-3">No Craft Essences are currently available from Atlas Academy.</div>`; if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1"; if (dom.cePagePrev) dom.cePagePrev.disabled = true; if (dom.cePageNext) dom.cePageNext.disabled = true; return; }
+  if (!state.ces.length) { dom.ceFilterSummary.textContent = "No Craft Essences available."; dom.ceResults.innerHTML = `<div class="empty-state">No Craft Essences are currently available from Atlas Academy.</div>`; if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1"; if (dom.cePagePrev) dom.cePagePrev.disabled = true; if (dom.cePageNext) dom.cePageNext.disabled = true; return; }
+
   const search = normalizeText(state.ceSearch), visibleCEs = state.ces.filter((ce) => !search || ce.normalizedName.includes(search)), totalCEs = visibleCEs.length, pageSize = Math.max(1, Number(state.ceSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]), totalPages = Math.max(1, Math.ceil(totalCEs / pageSize)), currentPage = Math.min(Math.max(1, state.ceSidebarPage), totalPages);
   state.ceSidebarPage = currentPage;
+
   const pageStart = totalCEs ? (currentPage - 1) * pageSize : 0, pagedCEs = visibleCEs.slice(pageStart, pageStart + pageSize);
   if (dom.cePageSize) dom.cePageSize.value = String(pageSize);
   if (dom.cePageLabel) dom.cePageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
   if (dom.cePagePrev) dom.cePagePrev.disabled = currentPage <= 1;
   if (dom.cePageNext) dom.cePageNext.disabled = currentPage >= totalPages;
   dom.ceFilterSummary.textContent = `Showing ${pagedCEs.length} of ${totalCEs} Craft Essences.`;
-  dom.ceResults.innerHTML = pagedCEs.length ? pagedCEs.map((ce) => ceCardMarkup(ce)).join("") : `<div class="text-muted small py-3">No Craft Essences match the current search.</div>`;
+
+  dom.ceResults.innerHTML = pagedCEs.length ? pagedCEs.map((ce) => ceCardMarkup(ce)).join("") : `<div class="empty-state">No Craft Essences match the current search.</div>`;
   dom.ceResults.querySelectorAll("[data-add-ce]").forEach((button) => {
     button.addEventListener("click", () => {
       const ceId = Number(button.dataset.addCe), ce = state.ces.find((entry) => entry.id === ceId);
@@ -112,12 +134,19 @@ function renderCESidebar() {
   });
 }
 
-function sidebarLoadingMarkup(label, progress) { const clampedProgress = Math.max(0, Math.min(100, Math.round(Number(progress) || 0))); return `<div class="small text-muted mb-2">${clampedProgress}% ${label}...</div><div class="progress"><div class="progress-bar" style="width:${clampedProgress}%"></div></div>`; }
+function sidebarLoadingMarkup(label, progress) {
+  const clampedProgress = Math.max(0, Math.min(100, Math.round(Number(progress) || 0)));
+  return `<div class="sidebar-loading-indicator" style="--loading-progress:${clampedProgress}">
+    <div class="sidebar-loading-ring"><span class="sidebar-loading-ring-core">${clampedProgress}%</span></div>
+    <div class="small text-muted">${label}...</div>
+  </div>`;
+}
 
 function renderRecommendations() {
   const recommendations = state.recommendations;
   if (dom.addAllRecommendedCEsButton) dom.addAllRecommendedCEsButton.disabled = recommendations.length === 0;
-  if (!recommendations.length) { dom.recommendationArea.innerHTML = `<div class="text-muted small">Click Optimize CEs to rank bond-focused Craft Essences for the servants currently in the lineup.</div>`; return; }
+  if (!recommendations.length) { dom.recommendationArea.innerHTML = `<div class="empty-state">Click Optimize CEs to rank bond-focused Craft Essences for the servants currently in the lineup.</div>`; return; }
+
   dom.recommendationArea.innerHTML = recommendations.map((ce, index) => recommendationMarkup(ce, index)).join("");
   dom.recommendationArea.querySelectorAll("[data-recommendation-id]").forEach((card) => {
     const ceId = Number(card.dataset.recommendationId), ce = recommendations.find((entry) => entry.id === ceId);
