@@ -58,11 +58,24 @@ function classAbbreviation(className) {
     .toUpperCase();
 }
 
-function extractBondPercent(detail) {
-  const matches = [...String(detail || "").matchAll(/(\d+)\s*[%％]/g)].map((match) => Number(match[1]));
-  return matches.length ? Math.max(...matches) : 0;
-}
+function extractBondPercents(detail, ceName = "") {
+  const original = String(detail || "");
+  if (!isBondBoostCE(original)) return { mlbPercent: 0, ownPercent: 0, isSupportConditional: false };
 
+  const jpBondMatches = [...original.matchAll(/絆[^0-9０-９]*(\d+|[０-９]+)\s*[%％]/g)];
+  const enBondMatches = [...original.matchAll(/(?:bond|friendship)[^0-9]*(\d+)\s*[%％]/gi)];
+  const supportMatches = [...original.matchAll(/(?:サポート|support)[^0-9０-９]*(\d+|[０-９]+)\s*[%％]/gi)];
+
+  const toNumber = (value) => Number(String(value || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)));
+  const values = [...jpBondMatches, ...enBondMatches].map((m) => toNumber(m[1])).filter(Boolean);
+  const supportValues = supportMatches.map((m) => toNumber(m[1])).filter(Boolean);
+
+  const mlbPercent = supportValues.length ? Math.max(...supportValues) : values.length ? Math.max(...values) : 0;
+  const ownPercent = values.length ? Math.min(...values) : mlbPercent;
+  const isSupportConditional = supportValues.length > 0 && ownPercent !== mlbPercent;
+
+  return { mlbPercent, ownPercent, isSupportConditional };
+}
 function extractBondPercentFromFunctions(skills) {
   if (!Array.isArray(skills)) {
     return 0;
