@@ -1,81 +1,73 @@
+const API_RETRY_BASE_DELAY_MS = 1500;
+const API_RETRY_MAX_DELAY_MS = 30000;
+
 async function loadAtlasData() {
   // Load servants first so the sidebar is usable while CEs are still downloading.
   state.servantSidebarLoading = true;
   state.ceSidebarLoading = true;
   state.servantSidebarLoadingProgress = 20;
   state.ceSidebarLoadingProgress = 5;
+  state.dataMode = "remote";
   renderServantSidebar();
   renderCESidebar();
-  try {
-    const servantResponse = await fetch(SERVANT_API_URL);
-    if (!servantResponse.ok) {
-      throw new Error("Atlas Academy servant request failed.");
+
+  const servants = await fetchJsonWithRetry(SERVANT_API_URL, {
+    resourceLabel: "Servants",
+    updateProgress: (attempt) => {
+      state.servantSidebarLoadingProgress = Math.min(85, 20 + attempt * 10);
+      renderServantSidebar();
     }
-    state.servants = normalizeServants(await servantResponse.json());
-    state.servantSidebarLoading = false;
-    state.servantSidebarLoadingProgress = 100;
-    state.ceSidebarLoadingProgress = 40;
-    renderServantSidebar();
-    setStatus("Servants loaded. Loading Craft Essences...", "secondary");
-  } catch (_error) {
-    await loadFallbackData();
-    return;
-  }
+  });
+  state.servants = normalizeServants(servants);
+  state.servantSidebarLoading = false;
+  state.servantSidebarLoadingProgress = 100;
+  state.ceSidebarLoadingProgress = 40;
+  renderServantSidebar();
+  setStatus("Servants loaded. Loading Craft Essences...", "secondary");
 
   // Load CEs from the targeted search endpoint (bond-gain CEs only, much smaller).
-  try {
-    state.ceSidebarLoadingProgress = 70;
-    renderCESidebar();
-    const ceResponse = await fetch(CE_API_URL);
-    if (!ceResponse.ok) {
-      throw new Error("Atlas Academy CE request failed.");
+  const craftEssences = await fetchJsonWithRetry(CE_API_URL, {
+    resourceLabel: "Craft Essence",
+    updateProgress: (attempt) => {
+      state.ceSidebarLoadingProgress = Math.min(95, 50 + attempt * 8);
+      renderCESidebar();
     }
-    state.ces = normalizeCEs(await ceResponse.json());
-    state.ceSidebarLoading = false;
-    state.ceSidebarLoadingProgress = 100;
-    state.dataMode = "remote";
-    setStatus(
-      `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
-      "success"
-    );
-    renderCESidebar();
-  } catch (_error) {
-    state.ces = [];
-    state.ceSidebarLoading = false;
-    state.ceSidebarLoadingProgress = 100;
-    setStatus(
-      "Servants loaded from Atlas Academy. Craft Essence data could not be loaded, so CE selection is unavailable.",
-      "warning"
-    );
-    renderCESidebar();
+  });
+  state.ces = normalizeCEs(craftEssences);
+  state.ceSidebarLoading = false;
+  state.ceSidebarLoadingProgress = 100;
+  setStatus(
+    `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
+    "success"
+  );
+  renderCESidebar();
+}
+
+async function fetchJsonWithRetry(url, { resourceLabel, updateProgress }) {
+  let attempt = 1;
+  let delayMs = API_RETRY_BASE_DELAY_MS;
+  while (true) {
+    updateProgress?.(attempt);
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return await response.json();
+    } catch (_error) {
+      const retrySeconds = Math.max(1, Math.round(delayMs / 1000));
+      setStatus(`${resourceLabel} request failed (attempt ${attempt}). Retrying in ${retrySeconds}s...`, "warning");
+      await wait(delayMs);
+      attempt += 1;
+      delayMs = Math.min(delayMs * 2, API_RETRY_MAX_DELAY_MS);
+    }
   }
 }
 
-async function loadFallbackData() {
-  try {
-    const servantResponse = await fetch("JSON/fallback-servants.json");
-    const servants = await servantResponse.json();
-    state.servants = normalizeServants(servants);
-    state.ces = [];
-    state.servantSidebarLoading = false;
-    state.ceSidebarLoading = false;
-    state.servantSidebarLoadingProgress = 100;
-    state.ceSidebarLoadingProgress = 100;
-    state.dataMode = "fallback";
-    setStatus(
-      "Atlas Academy servants could not be reached, so a local servant dataset is used. Craft Essences require Atlas Academy data and are currently unavailable.",
-      "warning"
-    );
-  } catch (_error) {
-    state.servants = [];
-    state.ces = [];
-    state.servantSidebarLoading = false;
-    state.ceSidebarLoading = false;
-    state.servantSidebarLoadingProgress = 100;
-    state.ceSidebarLoadingProgress = 100;
-    state.dataMode = "fallback";
-    setStatus("Failed to load data. Please refresh the page.", "danger");
-  }
+function wait(milliseconds) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
 }
 
 function normalizeServants(servants) {

@@ -165,8 +165,8 @@ function renderCESidebar() {
   }
 
   if (!state.ces.length) {
-    dom.ceFilterSummary.textContent = "Craft Essence data unavailable.";
-    dom.ceResults.innerHTML = `<div class="empty-state">Craft Essence data is unavailable right now. Please refresh once Atlas Academy is reachable.</div>`;
+    dom.ceFilterSummary.textContent = "No Craft Essences available.";
+    dom.ceResults.innerHTML = `<div class="empty-state">No Craft Essences are currently available from Atlas Academy.</div>`;
     return;
   }
 
