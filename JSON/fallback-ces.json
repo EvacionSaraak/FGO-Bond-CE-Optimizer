@@ -19,7 +19,7 @@
     "id": 2003,
     "name": "Heroic Portrait: Mash Kyrielight",
     "skills": [
-      { "detail": "Increase Bond gained by Mash Kyrielight by 50%." }
+      { "detail": "Increase Bond gained by Mash Kyrielight by 50." }
     ],
     "extraAssets": { "faces": { "equip": { "2003": "https://static.wikia.nocookie.net/fategrandorder/images/8/82/CE_1183.png" } } }
   },
@@ -27,7 +27,7 @@
     "id": 2004,
     "name": "Heroic Portrait: Jeanne d'Arc",
     "skills": [
-      { "detail": "Increase Bond gained by Jeanne d'Arc by 50%." }
+      { "detail": "Increase Bond gained by Jeanne d'Arc by 50." }
     ],
     "extraAssets": { "faces": { "equip": { "2004": "https://static.wikia.nocookie.net/fategrandorder/images/1/17/CE_048.png" } } }
   },
@@ -35,7 +35,7 @@
     "id": 2005,
     "name": "Formal Portrait: Mash Kyrielight",
     "skills": [
-      { "detail": "Increase Bond gained by Mash Kyrielight by 50%." }
+      { "detail": "Increase Bond gained by Mash Kyrielight by 50." }
     ],
     "extraAssets": { "faces": { "equip": { "2005": "https://static.wikia.nocookie.net/fategrandorder/images/4/49/CE_138.png" } } }
   },
@@ -43,7 +43,7 @@
     "id": 2006,
     "name": "Formal Portrait: Jeanne d'Arc",
     "skills": [
-      { "detail": "Increase Bond gained by Jeanne d'Arc by 50%." }
+      { "detail": "Increase Bond gained by Jeanne d'Arc by 50." }
     ],
     "extraAssets": { "faces": { "equip": { "2006": "https://static.wikia.nocookie.net/fategrandorder/images/f/f5/CE_227.png" } } }
   },
@@ -51,7 +51,7 @@
     "id": 2007,
     "name": "Travel Portrait: Mash Kyrielight",
     "skills": [
-      { "detail": "Increase Bond gained by Mash Kyrielight by 50%." }
+      { "detail": "Increase Bond gained by Mash Kyrielight by 50." }
     ],
     "extraAssets": { "faces": { "equip": { "2007": "https://static.wikia.nocookie.net/fategrandorder/images/b/bb/CE_667.png" } } }
   },
@@ -59,7 +59,7 @@
     "id": 2008,
     "name": "Sightseeing Portrait: Jeanne d'Arc",
     "skills": [
-      { "detail": "Increase Bond gained by Jeanne d'Arc by 50%." }
+      { "detail": "Increase Bond gained by Jeanne d'Arc by 50." }
     ],
     "extraAssets": { "faces": { "equip": { "2008": "https://static.wikia.nocookie.net/fategrandorder/images/7/71/CE_717.png" } } }
   }

@@ -146,6 +146,11 @@ function extractBondPercents(detail, ceName = "") {
   };
 }
 
+function isFlatBondPointCE(ceName = "") {
+  const normalizedName = normalizeText(ceName);
+  return normalizedName.includes("portrait");
+}
+
 function getCEBondPercent(ce, ceSlotIndex = null) {
   if (!ce) {
     return 0;

@@ -158,7 +158,8 @@ function normalizeCEs(craftEssences) {
       const percentInfo = extractBondPercents(detail, ce.name);
       // If the live API uses {0}% format strings in skill detail, text extraction yields 0.
       // Fall back to reading the actual values from the functions/svals data.
-      const mlbPercent = percentInfo.mlbPercent || extractBondPercentFromFunctions(ce.skills);
+      const parsedPercent = percentInfo.mlbPercent || extractBondPercentFromFunctions(ce.skills);
+      const mlbPercent = isFlatBondPointCE(ce.name) ? 0 : parsedPercent;
       const normalizedName = normalizeText(ce.name);
       const hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && mlbPercent >= 15;
       const ownPercent = hasTeatimeOwnPenalty ? 5 : percentInfo.ownPercent || mlbPercent;
