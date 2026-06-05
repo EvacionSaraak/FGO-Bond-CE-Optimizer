@@ -190,10 +190,10 @@ function normalizeCEs(craftEssences) {
       const hasBondFunction = (ce.raw?.skills ?? []).some((s) =>
         (s.functions ?? []).some((f) => {
           const type = normalizeText(f?.funcType || "");
+      
           return (
-            type === "bondgain" ||
             type === "servantfriendshipup" ||
-            type.includes("friendship")
+            type === "bondgain"
           );
         })
       );
