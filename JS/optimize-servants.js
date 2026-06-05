@@ -25,6 +25,7 @@ function getVisibleServantsForSidebar(slotIndex) {
 
 function handleOptimizeServants() {
   state.servantOptimizationEnabled = true;
+  state.servantSidebarPage = 1;
   if (state.activeServantSlot === null) {
     state.activeServantSlot = firstOpenSlot(state.selectedServants);
     state.activeCESlot = null;

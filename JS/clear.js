@@ -7,9 +7,12 @@ function handleClearAll() {
   state.activeCESlot = null;
   state.recommendations = [];
   state.servantOptimizationEnabled = false;
+  state.servantSidebarPage = 1;
+  state.servantSidebarPageSize = SIDEBAR_PAGE_SIZE_OPTIONS[0];
   state.servantSearch = "";
   state.ceSearch = "";
   dom.servantSearch.value = "";
+  dom.servantPageSize.value = String(SIDEBAR_PAGE_SIZE_OPTIONS[0]);
   dom.ceSearch.value = "";
   renderAll();
 }

@@ -7,6 +7,9 @@ For dumbos like me who don't want to open the FGO wiki page every time and click
   - Craft Essences: `/export/JP/nice_equip_lore_lang_en.json` filtered locally for bond-related effects
 - Local fallback snapshots:
   - `/JSON/fallback-servants.json`
-  - `/JSON/fallback-ces.json`
+  - `/JSON/nice_equip_lore_lang_en.json`
 
-If Atlas Academy is unavailable, the app now falls back to these local JSON files.
+Servants still use Atlas Academy first with fallback to `/JSON/fallback-servants.json`.
+Craft Essences now load from the local JSON snapshot first, then the app checks Atlas Academy in the background and replaces the list when a fresh fetch succeeds.
+
+The servant sidebar now uses pagination (default 10 per page, configurable to 25 or 50) instead of a long scrolling list.

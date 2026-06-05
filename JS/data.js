@@ -1,9 +1,7 @@
 const API_RETRY_BASE_DELAY_MS = 1500;
 const API_RETRY_MAX_DELAY_MS = 30000;
-const IMAGE_PRELOAD_CONCURRENCY = 10;
 
 async function loadAtlasData() {
-  // Keep sidebars blocked until servant/CE images are preloaded to avoid re-fetch flicker on selection.
   state.servantSidebarLoading = true;
   state.ceSidebarLoading = true;
   state.servantSidebarLoadingProgress = 20;
@@ -35,49 +33,9 @@ async function loadAtlasData() {
     state.ceSidebarLoadingProgress = 50;
     renderServantSidebar();
 
-    // Load the lore CE export so profile comments are available for bond CE detection.
-    let craftEssences;
-    try {
-      craftEssences = await fetchJsonWithRetry(CE_API_URL, {
-        resourceLabel: "Craft Essence",
-        updateProgress: (attempt) => {
-          state.ceSidebarLoadingProgress = Math.min(95, 50 + attempt * 8);
-          renderCESidebar();
-        }
-      });
-    } catch (_error) {
-      craftEssences = await fetchLocalJson(FALLBACK_CE_JSON_URL, { resourceLabel: "Craft Essences" });
-      loadedFromFallback = true;
-      setStatus("Atlas Craft Essences unavailable. Loaded local CE fallback.", "warning");
-    }
-
+    setStatus("Loading local Craft Essence snapshot...", "secondary");
+    const craftEssences = await fetchLocalJson(LOCAL_CE_JSON_URL, { resourceLabel: "Craft Essences" });
     state.ces = normalizeCEs(craftEssences);
-    state.servantSidebarLoadingProgress = 70;
-    state.ceSidebarLoadingProgress = 70;
-    renderServantSidebar();
-    renderCESidebar();
-
-    await preloadImageUrls(
-      [
-        ...state.servants.map((servant) => servant.image),
-        ...state.ces.map((ce) => ce.image)
-      ],
-      {
-        updateProgress: (completed, total) => {
-          if (!total) {
-            return;
-          }
-          const progress = 70 + Math.round((completed / total) * 30);
-          state.servantSidebarLoadingProgress = progress;
-          state.ceSidebarLoadingProgress = progress;
-          if (completed === 0 || completed === total || completed % 25 === 0) {
-            setStatus(`Preloading images... ${completed}/${total}`, "secondary");
-          }
-          renderServantSidebar();
-          renderCESidebar();
-        }
-      }
-    );
 
     state.servantSidebarLoading = false;
     state.ceSidebarLoading = false;
@@ -86,10 +44,11 @@ async function loadAtlasData() {
     state.dataMode = loadedFromFallback ? "fallback" : "remote";
     setStatus(
       loadedFromFallback
-        ? `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences with local fallback data.`
-        : `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
+        ? `Loaded ${state.servants.length.toLocaleString()} servants (local fallback) and ${state.ces.length.toLocaleString()} local Craft Essences. Checking Atlas for CE updates...`
+        : `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} local Craft Essences. Checking Atlas for CE updates...`,
       loadedFromFallback ? "warning" : "success"
     );
+    refreshCraftEssencesInBackground();
     renderCESidebar();
   } catch (error) {
     state.servantSidebarLoading = false;
@@ -97,6 +56,25 @@ async function loadAtlasData() {
     state.servantSidebarLoadingProgress = 0;
     state.ceSidebarLoadingProgress = 0;
     setStatus(`Failed to load data from Atlas Academy and local fallbacks: ${error.message}`, "danger");
+  }
+}
+
+async function refreshCraftEssencesInBackground() {
+  try {
+    const remoteCraftEssences = await fetchJsonWithRetry(CE_API_URL, {
+      resourceLabel: "Craft Essence"
+    });
+    state.ces = normalizeCEs(remoteCraftEssences);
+    setStatus(
+      `Craft Essences updated from Atlas Academy (${state.ces.length.toLocaleString()} entries).`,
+      "success"
+    );
+    renderCESidebar();
+  } catch (_error) {
+    setStatus(
+      `Using local Craft Essence snapshot (${state.ces.length.toLocaleString()} entries). Atlas update check failed.`,
+      "warning"
+    );
   }
 }
 
@@ -136,45 +114,6 @@ async function fetchLocalJson(url, { resourceLabel }) {
 function wait(milliseconds) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, milliseconds);
-  });
-}
-
-async function preloadImageUrls(urls, { updateProgress } = {}) {
-  const uniqueUrls = [...new Set((Array.isArray(urls) ? urls : []).filter((url) => isPreloadableImageUrl(url)))];
-  const total = uniqueUrls.length;
-  updateProgress?.(0, total);
-  if (!total) {
-    return;
-  }
-
-  let completed = 0;
-  const queue = [...uniqueUrls];
-  const workerCount = Math.min(IMAGE_PRELOAD_CONCURRENCY, total);
-  const workers = Array.from({ length: workerCount }, async () => {
-    while (queue.length) {
-      const url = queue.pop();
-      await preloadImage(url);
-      completed += 1;
-      updateProgress?.(completed, total);
-    }
-  });
-  await Promise.all(workers);
-}
-
-function isPreloadableImageUrl(url) {
-  return typeof url === "string" && url.length > 0 && !url.startsWith("data:");
-}
-
-function preloadImage(url) {
-  return new Promise((resolve) => {
-    const image = new Image();
-    const done = () => resolve();
-    image.onload = done;
-    image.onerror = done;
-    image.src = url;
-    if (image.complete) {
-      resolve();
-    }
   });
 }
 

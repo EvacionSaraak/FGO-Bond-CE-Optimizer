@@ -103,25 +103,41 @@ function renderServantSidebar() {
   const isLoading = state.servantSidebarLoading;
   dom.servantSidebar.classList.toggle("sidebar-loading", isLoading);
   dom.servantSearch.disabled = isLoading;
+  dom.servantPageSize.disabled = isLoading;
   dom.servantSearch.setAttribute("aria-busy", String(isLoading));
   dom.servantResults.classList.toggle("sidebar-loading-results", isLoading);
 
   const slotIndex = state.activeServantSlot;
   dom.servantSlotLabel.textContent = slotIndex !== null ? `Slot ${slotIndex + 1}` : "Any Slot";
   const visibleServants = isLoading ? [] : getVisibleServantsForSidebar(slotIndex ?? -1);
+  const totalServants = visibleServants.length;
+  const pageSize = Math.max(1, Number(state.servantSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]);
+  const totalPages = Math.max(1, Math.ceil(totalServants / pageSize));
+  const currentPage = Math.min(Math.max(1, state.servantSidebarPage), totalPages);
+  state.servantSidebarPage = currentPage;
+  const pageStart = totalServants ? (currentPage - 1) * pageSize : 0;
+  const pageEnd = pageStart + pageSize;
+  const pagedServants = visibleServants.slice(pageStart, pageEnd);
+  dom.servantPageSize.value = String(pageSize);
+  dom.servantPageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+  dom.servantPagePrev.disabled = isLoading || currentPage <= 1;
+  dom.servantPageNext.disabled = isLoading || currentPage >= totalPages;
   dom.servantFilterSummary.textContent = state.servantOptimizationEnabled
-    ? `Showing ${visibleServants.length} servants affected by all selected Craft Essences.`
-    : `Showing ${visibleServants.length} servants matching the current search.`;
+    ? `Showing ${pagedServants.length} of ${totalServants} servants affected by all selected Craft Essences.`
+    : `Showing ${pagedServants.length} of ${totalServants} servants matching the current search.`;
 
   if (isLoading) {
     dom.servantFilterSummary.textContent = "Loading servants...";
     dom.servantResults.innerHTML = sidebarLoadingMarkup("Loading servants", state.servantSidebarLoadingProgress);
+    dom.servantPageLabel.textContent = "Page 1 of 1";
+    dom.servantPagePrev.disabled = true;
+    dom.servantPageNext.disabled = true;
     return;
   }
 
   const targetIndex = getTargetServantSlotIndex();
-  dom.servantResults.innerHTML = visibleServants.length
-    ? visibleServants
+  dom.servantResults.innerHTML = pagedServants.length
+    ? pagedServants
         .map((servant) => servantCardMarkup(servant, !canAddServantToSelection(servant.id, targetIndex)))
         .join("")
     : `<div class="empty-state">No servants match the current search and CE filters.</div>`;

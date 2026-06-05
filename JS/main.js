@@ -18,6 +18,10 @@ function cacheDom() {
   dom.servantSlotLabel = document.getElementById("servant-sidebar-slot-label");
   dom.ceSlotLabel = document.getElementById("ce-sidebar-slot-label");
   dom.servantSearch = document.getElementById("servant-search");
+  dom.servantPageSize = document.getElementById("servant-page-size");
+  dom.servantPagePrev = document.getElementById("servant-page-prev");
+  dom.servantPageNext = document.getElementById("servant-page-next");
+  dom.servantPageLabel = document.getElementById("servant-page-label");
   dom.ceSearch = document.getElementById("ce-search");
   dom.servantResults = document.getElementById("servant-results");
   dom.ceResults = document.getElementById("ce-results");
@@ -32,6 +36,27 @@ function cacheDom() {
 function bindEvents() {
   dom.servantSearch.addEventListener("input", (event) => {
     state.servantSearch = event.target.value.trim();
+    state.servantSidebarPage = 1;
+    renderServantSidebar();
+  });
+
+  dom.servantPageSize.addEventListener("change", (event) => {
+    const parsed = Number(event.target.value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return;
+    }
+    state.servantSidebarPageSize = parsed;
+    state.servantSidebarPage = 1;
+    renderServantSidebar();
+  });
+
+  dom.servantPagePrev.addEventListener("click", () => {
+    state.servantSidebarPage = Math.max(1, state.servantSidebarPage - 1);
+    renderServantSidebar();
+  });
+
+  dom.servantPageNext.addEventListener("click", () => {
+    state.servantSidebarPage += 1;
     renderServantSidebar();
   });
 
