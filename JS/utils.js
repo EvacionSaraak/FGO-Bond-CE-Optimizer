@@ -1,5 +1,5 @@
 function normalizeText(value) { return String(value || "").toLowerCase().replace(/[^a-z0-9\s'-]/g, " ").replace(/\s+/g, " ").trim(); }
-function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;/g").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 function toTitleCase(value) { return String(value || "").split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" "); }
 function formatPercent(value) { const n = Number(value) || 0; return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2))); }
 function toAsciiNumber(value) { return Number(String(value || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))); }
@@ -14,6 +14,7 @@ function extractBondPercent(detail) { const info = extractBondPercents(detail); 
 function extractBondPercentFromFunctions(skills) { if (!Array.isArray(skills)) return 0; let maxPercent = 0; for (const skill of skills) { for (const func of Array.isArray(skill.functions) ? skill.functions : []) { if (!isBondGainFunction(func)) continue; for (const sval of Array.isArray(func.svals) ? func.svals : []) { const raw = Number(sval?.Value ?? sval?.value ?? sval?.Rate ?? sval?.rate ?? sval?.val ?? 0); if (!raw) continue; const percent = raw > 100 ? raw / 100 : raw; if (percent > maxPercent) maxPercent = percent; } } } return maxPercent; }
 function isBondBoostCE(detail) { const original = String(detail || ""), text = normalizeText(original); if (!original.trim()) return false; if (original.includes("絆")) return true; return text.includes("bond points") || text.includes("bond point") || text.includes("bond gained") || text.includes("bond gain") || text.includes("increases bond") || text.includes("friendship"); }
 function isServantPersonalBondCE(_detail, rawCE = null) { return Number(rawCE?.bondEquipOwner ?? 0) > 0; }
+
 function extractBondPercents(detail, ceName = "") {
   const original = String(detail || "");
   if (!isBondBoostCE(original)) return { basePercent: 0, mlbPercent: 0, ownBasePercent: 0, ownMlbPercent: 0, isSupportConditional: false };
@@ -23,11 +24,15 @@ function extractBondPercents(detail, ceName = "") {
   const values = [...jpBondMatches, ...enBondMatches].map((m) => toAsciiNumber(m[1])).filter(Boolean);
   const supportValues = supportMatches.map((m) => toAsciiNumber(m[1])).filter(Boolean);
   const basePercent = supportValues.length ? Math.max(...supportValues) : values.length ? Math.max(...values) : 0;
+  const mlbMultiplier = getBondMLBMultiplier(ceName);
   const ownBasePercent = values.length ? Math.min(...values) : basePercent;
   const isSupportConditional = (supportValues.length > 0 && ownBasePercent !== basePercent) || normalizeText(ceName) === "chaldea teatime";
-  return { basePercent, mlbPercent: basePercent * 5, ownBasePercent, ownMlbPercent: ownBasePercent * 5, isSupportConditional };
+  return { basePercent, mlbPercent: basePercent * mlbMultiplier, ownBasePercent, ownMlbPercent: ownBasePercent * mlbMultiplier, isSupportConditional };
 }
+
 function isFlatBondPointCE(ceName = "") { return normalizeText(ceName).includes("portrait"); }
+function isPremultipliedBondPercentCE(ceName = "") { const raw = String(ceName || ""), name = normalizeText(raw); return raw.includes("英霊極点") || name.includes("heroic spirit apex"); }
+function getBondMLBMultiplier(ceName = "") { if (isPremultipliedBondPercentCE(ceName)) return 1; return 5; }
 function getCEBondPercent(ce, ceSlotIndex = null) { if (!ce) return 0; const isOwned = ceSlotIndex !== null && Boolean(state.selectedCEOwned[ceSlotIndex]); if (isOwned && Number(ce.ownPercent) > 0) return ce.ownPercent; return ce.percent; }
 
 const JP_CE_CONDITION_ALIASES = {
@@ -88,7 +93,7 @@ function servantMatchesCECondition(servant, condition) {
   return getConditionAliases(condition).some((alias) => valueSet.has(normalizeText(alias)) || valueSet.has(compactTrait(alias)));
 }
 function isGenericJapaneseBondCE(detail) { const text = String(detail || ""); return text.includes("絆") && !getJapaneseBondConditionGroups(text).length; }
-function getCEEffectTag(ce) { const groups = getJapaneseBondConditionGroups(ce?.detail || ""), base = formatPercent(ce?.basePercent ?? (Number(ce?.percent || 0) / 5)), mlb = formatPercent(ce?.percent || 0), target = groups.length ? groups.map((group) => group.join(" ")).join(" / ") : "All"; return `${target} +${base}% (${mlb}% MLB)`; }
+function getCEEffectTag(ce) { const groups = getJapaneseBondConditionGroups(ce?.detail || ""), base = formatPercent(ce?.basePercent ?? (Number(ce?.percent || 0) / getBondMLBMultiplier(ce?.name || ""))), mlb = formatPercent(ce?.percent || 0), target = groups.length ? groups.map((group) => group.join(" ")).join(" / ") : "All"; return `${target} +${base}% (${mlb}% MLB)`; }
 
 function matchesPartyWideBondRule(description) { return ["all allies", "all party members", "party members", "all party", "frontline allies", "frontline servants", "frontline party", "all frontline", "including sub members"].some((phrase) => description.includes(phrase)); }
 function isExceptSelfCE(description) { return /(except yourself|except self|except equipped servant|excluding yourself|excluding the equipped servant)/.test(description); }
