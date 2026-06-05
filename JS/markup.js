@@ -1,11 +1,11 @@
-function servantSlotMarkup(servant, index, totalBonus) { const isMaxBond = Boolean(state.selectedServantBond15[index]), maxBondNote = isMaxBond ? `<div class="max-bond-indicator">Max Bond — ignored by CE optimizer</div>` : ""; return `
+function servantSlotMarkup(servant, index, totalBonus) { const isMaxBond = Boolean(state.selectedServantBond15[index]); return `
   <div class="slot-filled ${isMaxBond ? "slot-max-bond" : ""}" data-servant-id="${servant.id}">
     <img class="slot-image" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
     <div class="slot-content">
       <div class="slot-label">Servant ${index + 1}</div>
       <div class="slot-name">${escapeHtml(servant.name)}</div>
       <div class="slot-meta class-row"><img class="class-icon" src="${escapeHtml(servant.classIcon)}" alt="">${escapeHtml(toTitleCase(servant.className))}</div>
-      ${maxBondNote}
+      <button type="button" class="max-bond-toggle ${isMaxBond ? "active" : ""}" data-servant-bond15-toggle="${index}" aria-pressed="${isMaxBond ? "true" : "false"}">${isMaxBond ? "Max Bond: ON" : "Mark Max Bond"}</button>
       <div class="selection-total">Total bond bonus: ${formatPercent(totalBonus)}%</div>
     </div>
   </div>
