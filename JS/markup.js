@@ -1,5 +1,5 @@
 function servantSlotMarkup(servant, index, totalBonus) { const maxBondNote = state.selectedServantBond15[index] ? `<div class="badge text-bg-warning text-dark mt-1">Max bond reached</div>` : ""; return `
-  <div class="slot-filled" data-servant-tooltip-id="${servant.id}">
+  <div class="slot-filled" data-servant-id="${servant.id}">
     <img class="slot-image" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
     <div class="slot-content">
       <div class="slot-label">Servant ${index + 1}</div>
@@ -31,7 +31,7 @@ function emptySlotMarkup(kind, index) { return `
 `; }
 
 function servantCardMarkup(servant, isAddDisabled = false) { return `
-  <button type="button" class="sidebar-card ${isAddDisabled ? "sidebar-card-disabled" : ""} w-100 text-start p-0" data-add-servant="${servant.id}" data-servant-tooltip-id="${servant.id}" ${isAddDisabled ? "disabled" : ""}>
+  <button type="button" class="sidebar-card ${isAddDisabled ? "sidebar-card-disabled" : ""} w-100 text-start p-0" data-add-servant="${servant.id}" data-servant-id="${servant.id}" ${isAddDisabled ? "disabled" : ""}>
     <div class="sidebar-card-body">
       <div class="sidebar-card-header">
         <img class="sidebar-thumb" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
@@ -64,19 +64,35 @@ function ceCardMarkup(ce) { return `
   </button>
 `; }
 
-function recommendationMarkup(ce) { const affectedServants = ce.affectedServants || []; return `
+function recommendationAffectedServantsMarkup(ce) {
+  const affectedServants = ce.affectedServants || [];
+  if (!affectedServants.length) return `<div class="small text-muted mt-2">Affects no selected servants.</div>`;
+  return `<div class="affected-servant-list small mt-2">${affectedServants.map(({ servant, slotIndex, bonus }) => `
+    <div class="affected-servant-row" data-servant-id="${servant.id}">
+      <span class="text-muted">Slot ${slotIndex + 1}</span>
+      <span>${escapeHtml(servant.name)}</span>
+      <span class="fw-semibold">+${formatPercent(bonus)}%</span>
+    </div>
+  `).join("")}</div>`;
+}
+
+function recommendationMarkup(ce, index = 0) { const affectedServants = ce.affectedServants || [], hypotheticalTotal = Number(ce.totalBonus) || 0; return `
   <div class="recommendation-card" data-recommendation-id="${ce.id}" title="${escapeHtml(ce.detail || "")}">
     <div class="recommendation-card-body">
       <div class="recommendation-card-header">
         <img class="recommendation-thumb" src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
         <div>
-          <div class="fw-semibold">${escapeHtml(ce.name)}</div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="badge text-bg-secondary">#${index + 1}</span>
+            <div class="fw-semibold">${escapeHtml(ce.name)}</div>
+          </div>
           <div class="small text-muted mt-1">${escapeHtml(getCEEffectTag(ce))}</div>
           <div class="recommendation-badges mt-2">
             <span class="badge badge-soft">${formatPercent(ce.percent)}% each MLB</span>
-            <span class="badge text-bg-success">${formatPercent(Math.max(ce.totalBonus || 0, 0))}% total</span>
+            <span class="badge text-bg-success">Hypothetical affected total +${formatPercent(hypotheticalTotal)}%</span>
           </div>
           <div class="small text-muted mt-2">Affects ${affectedServants.length} selected servant${affectedServants.length === 1 ? "" : "s"}.</div>
+          ${recommendationAffectedServantsMarkup(ce)}
           <button type="button" class="btn btn-sm btn-primary mt-2" data-add-recommended-ce="${ce.id}">Add</button>
         </div>
       </div>
