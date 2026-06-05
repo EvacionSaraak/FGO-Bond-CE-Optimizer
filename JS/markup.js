@@ -68,8 +68,8 @@ function recommendationAffectedServantsMarkup(ce){const affectedServants=ce.affe
     </div>
   `).join("")}</div>`;}
 
-function recommendationMarkup(ce,index=0){const affectedServants=ce.affectedServants||[],hypotheticalTotal=Number(ce.totalBonus)||0,tag=getCEEffectTag(ce),affectedText=affectedServants.length?affectedServants.map(({servant,slotIndex,bonus})=>`Slot ${slotIndex+1}: ${servant.name} +${formatPercent(bonus)}%`).join(" | "):"Affects no selected servants.";return `
-  <div class="recommendation-card recommendation-card-basic" data-recommendation-id="${ce.id}" title="${escapeHtml(ce.name)} | ${escapeHtml(tag)} | Hypothetical total +${formatPercent(hypotheticalTotal)}% | ${escapeHtml(affectedText)} | ${escapeHtml(ce.detail||"")}">
+function recommendationMarkup(ce,index=0){const affectedServants=ce.affectedServants||[],hypotheticalTotal=Number(ce.totalBonus)||0;return `
+  <div class="recommendation-card recommendation-card-basic" data-recommendation-id="${ce.id}" data-ce-tooltip-id="${ce.id}">
     <img class="recommendation-basic-image" src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
     <div class="recommendation-basic-rank">#${index+1}</div>
     <div class="recommendation-basic-overlay">
