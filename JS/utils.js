@@ -63,6 +63,37 @@ function extractBondPercent(detail) {
   return matches.length ? Math.max(...matches) : 0;
 }
 
+// Fallback for when skill detail uses {0}% placeholders instead of real values.
+// Reads from the functions/svals structure of the skill array directly.
+function extractBondPercentFromFunctions(skills) {
+  if (!Array.isArray(skills)) {
+    return 0;
+  }
+  let maxPercent = 0;
+  for (const skill of skills) {
+    const functions = Array.isArray(skill.functions) ? skill.functions : [];
+    for (const func of functions) {
+      if (func.funcType !== "bondGain") {
+        continue;
+      }
+      const svals = Array.isArray(func.svals) ? func.svals : [];
+      for (const sval of svals) {
+        const raw = Number(sval?.Value ?? 0);
+        if (!raw) {
+          continue;
+        }
+        // Atlas Academy may store values as direct percent (10 = 10%) or in the game's
+        // internal permille scale (1000 = 10%, i.e. divide by 100 to get percent).
+        const percent = raw > 100 ? raw / 100 : raw;
+        if (percent > maxPercent) {
+          maxPercent = percent;
+        }
+      }
+    }
+  }
+  return maxPercent;
+}
+
 function isBondBoostCE(detail) {
   const lowered = String(detail || "").toLowerCase();
   const hasBondKeyword = lowered.includes("bond") || lowered.includes("絆");

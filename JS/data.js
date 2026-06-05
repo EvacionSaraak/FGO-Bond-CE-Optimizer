@@ -1,28 +1,44 @@
 async function loadAtlasData() {
+  // Load servants first so the sidebar is usable while CEs are still downloading.
   try {
-    const [servantResponse, ceResponse] = await Promise.all([
-      fetch(SERVANT_API_URL),
-      fetch(CE_API_URL)
-    ]);
-
-    if (!servantResponse.ok || !ceResponse.ok) {
-      throw new Error("Atlas Academy request failed.");
+    const servantResponse = await fetch(SERVANT_API_URL);
+    if (!servantResponse.ok) {
+      throw new Error("Atlas Academy servant request failed.");
     }
+    state.servants = normalizeServants(await servantResponse.json());
+    renderServantSidebar();
+    setStatus("Servants loaded. Loading Craft Essences...", "secondary");
+  } catch (_error) {
+    await loadFallbackData();
+    return;
+  }
 
-    const [servants, craftEssences] = await Promise.all([
-      servantResponse.json(),
-      ceResponse.json()
-    ]);
-
-    state.servants = normalizeServants(servants);
-    state.ces = normalizeCEs(craftEssences);
+  // Load CEs from the targeted search endpoint (bond-gain CEs only, much smaller).
+  try {
+    const ceResponse = await fetch(CE_API_URL);
+    if (!ceResponse.ok) {
+      throw new Error("Atlas Academy CE request failed.");
+    }
+    state.ces = normalizeCEs(await ceResponse.json());
     state.dataMode = "remote";
     setStatus(
       `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
       "success"
     );
+    renderCESidebar();
   } catch (_error) {
-    await loadFallbackData();
+    // Servants already loaded; only fall back the CE portion.
+    try {
+      const ceResponse = await fetch("JSON/fallback-ces.json");
+      state.ces = normalizeCEs(await ceResponse.json());
+    } catch (_fallbackError) {
+      state.ces = [];
+    }
+    setStatus(
+      "Servants loaded from Atlas Academy. Craft Essence data fell back to the local dataset.",
+      "warning"
+    );
+    renderCESidebar();
   }
 }
 
@@ -97,9 +113,12 @@ function normalizeCEs(craftEssences) {
         ce.profile?.comments?.[0]?.comment ||
         "";
       const percentInfo = extractBondPercents(detail, ce.name);
+      // If the live API uses {0}% format strings in skill detail, text extraction yields 0.
+      // Fall back to reading the actual values from the functions/svals data.
+      const mlbPercent = percentInfo.mlbPercent || extractBondPercentFromFunctions(ce.skills);
       const normalizedName = normalizeText(ce.name);
-      const hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && percentInfo.mlbPercent >= 15;
-      const ownPercent = hasTeatimeOwnPenalty ? 5 : percentInfo.ownPercent;
+      const hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && mlbPercent >= 15;
+      const ownPercent = hasTeatimeOwnPenalty ? 5 : percentInfo.ownPercent || mlbPercent;
       const supportConditional = hasTeatimeOwnPenalty || percentInfo.isSupportConditional;
       return {
         id: ce.id,
@@ -107,7 +126,7 @@ function normalizeCEs(craftEssences) {
         normalizedName,
         detail,
         normalizedDetail: normalizeText(detail),
-        percent: percentInfo.mlbPercent,
+        percent: mlbPercent,
         ownPercent,
         supportConditional,
         fallbackImage: createTextImage(ce.name, "#5a189a"),
@@ -115,6 +134,12 @@ function normalizeCEs(craftEssences) {
         raw: ce
       };
     })
-    .filter((ce) => isBondBoostCE(ce.detail) && ce.percent > 0 && !isServantPersonalBondCE(ce.detail, ce.raw))
+    .filter((ce) => {
+      const hasBondText = isBondBoostCE(ce.detail);
+      const hasBondFunction = (ce.raw?.skills ?? []).some((s) =>
+        (s.functions ?? []).some((f) => f.funcType === "bondGain")
+      );
+      return ce.percent > 0 && (hasBondText || hasBondFunction) && !isServantPersonalBondCE(ce.detail, ce.raw);
+    })
     .sort((left, right) => left.id - right.id);
 }
