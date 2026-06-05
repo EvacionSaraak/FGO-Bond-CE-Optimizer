@@ -18,10 +18,55 @@ function extractBondPercents(detail, ceName = "") { const original = String(deta
 function isFlatBondPointCE(ceName = "") { return normalizeText(ceName).includes("portrait"); }
 function getCEBondPercent(ce, ceSlotIndex = null) { if (!ce) return 0; const isOwned = ceSlotIndex !== null && Boolean(state.selectedCEOwned[ceSlotIndex]); if (isOwned && Number(ce.ownPercent) > 0) return ce.ownPercent; return ce.percent; }
 
-const JP_CE_CONDITION_ALIASES = { "秩序": "Lawful", "混沌": "Chaotic", "中立": "Neutral", "善": "Good", "悪": "Evil", "中庸": "Balanced", "狂": "Madness", "夏": "Summer", "男性": "Male", "女性": "Female", "性別不明": "Unknown", "天": "Sky", "地": "Earth", "人": "Man", "星": "Star", "獣": "Beast", "セイバー": "Saber", "アーチャー": "Archer", "ランサー": "Lancer", "ライダー": "Rider", "キャスター": "Caster", "アサシン": "Assassin", "バーサーカー": "Berserker", "ルーラー": "Ruler", "アヴェンジャー": "Avenger", "ムーンキャンサー": "Moon Cancer", "アルターエゴ": "Alter Ego", "フォーリナー": "Foreigner", "プリテンダー": "Pretender" };
-function getJapaneseBondConditionGroups(detail) { const text = String(detail || ""), groups = []; for (const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g)) { const alternatives = String(match[1] || "").split(/(?:または|又は| or )/i); for (const alternative of alternatives) { const conditions = Object.entries(JP_CE_CONDITION_ALIASES).filter(([jp]) => alternative.includes(jp)).map(([, value]) => value); if (conditions.length) groups.push([...new Set(conditions)]); } } return groups; }
+const JP_CE_CONDITION_ALIASES = {
+  "秩序": { label: "Lawful", aliases: ["lawful"] },
+  "混沌": { label: "Chaotic", aliases: ["chaotic"] },
+  "中立": { label: "Neutral", aliases: ["neutral"] },
+  "善": { label: "Good", aliases: ["good"] },
+  "悪": { label: "Evil", aliases: ["evil"] },
+  "中庸": { label: "Balanced", aliases: ["balanced"] },
+  "狂": { label: "Madness", aliases: ["madness"] },
+  "夏": { label: "Summer", aliases: ["summer"] },
+  "男性": { label: "Male", aliases: ["male"] },
+  "女性": { label: "Female", aliases: ["female"] },
+  "性別不明": { label: "Unknown", aliases: ["unknown"] },
+  "天": { label: "Sky", aliases: ["sky"] },
+  "地": { label: "Earth", aliases: ["earth"] },
+  "人": { label: "Man", aliases: ["man"] },
+  "星": { label: "Star", aliases: ["star"] },
+  "獣": { label: "Beast", aliases: ["beast"] },
+  "ケモノ科": { label: "Animal Characteristic", aliases: ["animal characteristic", "animal characteristics", "animal characteristics servant", "animal trait", "kemono"] },
+  "衣装持ち": { label: "Costume-Owning", aliases: ["costume owning", "costume-owning", "costume owning trait", "has costume", "costume"] },
+  "霊衣": { label: "Costume-Owning", aliases: ["costume owning", "costume-owning", "costume owning trait", "has costume", "costume"] },
+  "セイバー": { label: "Saber", aliases: ["saber"] },
+  "アーチャー": { label: "Archer", aliases: ["archer"] },
+  "ランサー": { label: "Lancer", aliases: ["lancer"] },
+  "ライダー": { label: "Rider", aliases: ["rider"] },
+  "キャスター": { label: "Caster", aliases: ["caster"] },
+  "アサシン": { label: "Assassin", aliases: ["assassin"] },
+  "バーサーカー": { label: "Berserker", aliases: ["berserker"] },
+  "ルーラー": { label: "Ruler", aliases: ["ruler"] },
+  "アヴェンジャー": { label: "Avenger", aliases: ["avenger"] },
+  "ムーンキャンサー": { label: "Moon Cancer", aliases: ["moon cancer", "mooncancer"] },
+  "アルターエゴ": { label: "Alter Ego", aliases: ["alter ego", "alterego"] },
+  "フォーリナー": { label: "Foreigner", aliases: ["foreigner"] },
+  "プリテンダー": { label: "Pretender", aliases: ["pretender"] }
+};
+
+function getJapaneseBondConditionGroups(detail) { const text = String(detail || ""), groups = []; for (const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g)) { const alternatives = String(match[1] || "").split(/(?:または|又は| or )/i); for (const alternative of alternatives) { const conditions = Object.entries(JP_CE_CONDITION_ALIASES).filter(([jp]) => alternative.includes(jp)).map(([, entry]) => entry.label); if (conditions.length) groups.push([...new Set(conditions)]); } } return groups; }
+
+function compactTrait(value) { return normalizeText(String(value || "").replace(/[\s_-]+/g, "")); }
+
+function getConditionAliases(condition) { const entry = Object.values(JP_CE_CONDITION_ALIASES).find((item) => item.label === condition); return [condition, ...(entry?.aliases || [])]; }
+
+function servantMatchesCECondition(servant, condition) {
+  const servantValues = [servant.name, servant.normalizedName, servant.className, servant.gender, servant.attribute, ...(Array.isArray(servant.alignment) ? servant.alignment : []), ...(Array.isArray(servant.traits) ? servant.traits : [])].filter(Boolean);
+  const valueSet = new Set(servantValues.flatMap((value) => [normalizeText(value), compactTrait(value)]));
+  return getConditionAliases(condition).some((alias) => valueSet.has(normalizeText(alias)) || valueSet.has(compactTrait(alias)));
+}
+
+function getCEEffectTag(ce) { const groups = getJapaneseBondConditionGroups(ce?.detail || ""), base = formatPercent(ce?.basePercent ?? (Number(ce?.percent || 0) / 5)), mlb = formatPercent(ce?.percent || 0), target = groups.length ? groups.map((group) => group.join(" ")).join(" / ") : "All"; return `${target} +${base}% (${mlb}% MLB)`; }
 function conditionForMatching(condition) { return normalizeText(String(condition || "").replace(/\s+/g, "")); }
-function servantMatchesCECondition(servant, condition) { const values = new Set([normalizeText(servant.name), servant.normalizedName, normalizeText(servant.className), servant.gender, servant.attribute, ...(Array.isArray(servant.alignment) ? servant.alignment : []), ...(Array.isArray(servant.traits) ? servant.traits : [])].filter(Boolean).flatMap((v) => [normalizeText(v), normalizeText(String(v).replace(/\s+/g, ""))])); return values.has(conditionForMatching(condition)); }
 function isGenericJapaneseBondCE(detail) { const text = String(detail || ""); return text.includes("絆") && !getJapaneseBondConditionGroups(text).length; }
 function getCEEffectTag(ce) { const groups = getJapaneseBondConditionGroups(ce?.detail || ""), base = formatPercent(ce?.basePercent ?? (Number(ce?.percent || 0) / 5)), mlb = formatPercent(ce?.percent || 0), target = groups.length ? groups.map((group) => group.join(" ")).join(" / ") : "All"; return `${target} +${base}% (${mlb}% MLB)`; }
 
@@ -35,3 +80,42 @@ function firstImageFromGroup(group) { if (!group) return ""; if (typeof group ==
 function createClassIcon(className) { const normalized = normalizeText(className || "unknown") || "unknown"; if (classIconCache.has(normalized)) return classIconCache.get(normalized); const canvas = document.createElement("canvas"); canvas.width = CLASS_ICON_SIZE; canvas.height = CLASS_ICON_SIZE; const context = canvas.getContext("2d"), fill = CLASS_COLORS[normalized] || "#495057"; context.fillStyle = fill; context.beginPath(); context.arc(CLASS_ICON_SIZE / 2, CLASS_ICON_SIZE / 2, 28, 0, Math.PI * 2); context.fill(); context.strokeStyle = "rgba(255,255,255,0.85)"; context.lineWidth = 3; context.stroke(); context.fillStyle = normalized === "ruler" ? "#212529" : "#ffffff"; context.font = "bold 18px sans-serif"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(classAbbreviation(normalized), CLASS_ICON_SIZE / 2, CLASS_ICON_SIZE / 2 + 1); const dataUrl = canvas.toDataURL("image/png"); classIconCache.set(normalized, dataUrl); return dataUrl; }
 function createTextImage(label, color) { const safeLabel = escapeHtml(String(label || "").split(/\s+/).filter(Boolean).slice(0, 2).join(" ").slice(0, 18) || "FGO"); const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="100%" height="100%" rx="18" fill="${color}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="700">${safeLabel}</text></svg>`; return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`; }
 function bindImageFallbacks(root) { root.querySelectorAll("img[data-fallback-src]").forEach((image) => { image.addEventListener("error", () => { if (image.dataset.fallbackSrc && image.src !== image.dataset.fallbackSrc) image.src = image.dataset.fallbackSrc; }, { once: true }); }); }
+function initServantTooltip() {
+  if (window.__servantTooltipInitialized) return;
+  window.__servantTooltipInitialized = true;
+  let tooltip = document.getElementById("servant-tooltip");
+  if (!tooltip) { tooltip = document.createElement("div"); tooltip.id = "servant-tooltip"; tooltip.className = "servant-tooltip"; document.body.appendChild(tooltip); }
+
+  const renderTooltip = (servant) => {
+    const alignment = Array.isArray(servant.alignment) && servant.alignment.length ? servant.alignment.map(toTitleCase).join(", ") : "Unknown";
+    const traits = Array.isArray(servant.traits) && servant.traits.length ? servant.traits.slice(0, 28).map(toTitleCase).join(", ") : "None";
+    tooltip.innerHTML = `
+      <div class="servant-tooltip-name">${escapeHtml(servant.name)}</div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Class</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.className))}</span></div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Gender</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.gender || "unknown"))}</span></div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Attribute</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.attribute || "unknown"))}</span></div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Alignment</span><span class="servant-tooltip-value">${escapeHtml(alignment)}</span></div>
+      <div class="servant-tooltip-traits"><span class="servant-tooltip-label">Traits</span><span class="servant-tooltip-value">${escapeHtml(traits)}</span></div>
+    `;
+  };
+
+  const moveTooltip = (event) => {
+    if (!tooltip.classList.contains("visible")) return;
+    const margin = 16, rect = tooltip.getBoundingClientRect();
+    let left = event.clientX + margin, top = event.clientY + margin;
+    if (left + rect.width > window.innerWidth - margin) left = event.clientX - rect.width - margin;
+    if (top + rect.height > window.innerHeight - margin) top = event.clientY - rect.height - margin;
+    tooltip.style.left = `${Math.max(margin, left)}px`; tooltip.style.top = `${Math.max(margin, top)}px`;
+  };
+
+  document.addEventListener("mouseover", (event) => {
+    const trigger = event.target.closest("[data-servant-tooltip-id]");
+    if (!trigger) return;
+    const servantId = Number(trigger.dataset.servantTooltipId), servant = state.servants.find((entry) => entry.id === servantId) || state.selectedServants.find((entry) => entry?.id === servantId);
+    if (!servant) return;
+    renderTooltip(servant); tooltip.classList.add("visible"); moveTooltip(event);
+  });
+
+  document.addEventListener("mousemove", moveTooltip);
+  document.addEventListener("mouseout", (event) => { if (event.target.closest("[data-servant-tooltip-id]")) tooltip.classList.remove("visible"); });
+}
