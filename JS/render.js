@@ -126,11 +126,11 @@ function renderCESidebar() {
   dom.ceSlotLabel.textContent = `CE Slot ${slotIndex + 1}`;
   const search = normalizeText(state.ceSearch);
   const visibleCEs = state.ces.filter((ce) => !search || ce.normalizedName.includes(search));
-  dom.ceFilterSummary.textContent = `Showing ${visibleCEs.length} bond-related Craft Essences.`;
+  dom.ceFilterSummary.textContent = `Showing ${visibleCEs.length} Craft Essences.`;
 
   dom.ceResults.innerHTML = visibleCEs.length
     ? visibleCEs.map((ce) => ceCardMarkup(ce)).join("")
-    : `<div class="empty-state">No bond-related Craft Essences match the current search.</div>`;
+    : `<div class="empty-state">No Craft Essences match the current search.</div>`;
 
   dom.ceResults.querySelectorAll("[data-add-ce]").forEach((button) => {
     button.addEventListener("click", () => {

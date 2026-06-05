@@ -18,7 +18,7 @@ async function loadAtlasData() {
     state.ces = normalizeCEs(craftEssences);
     state.dataMode = "remote";
     setStatus(
-      `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} bond-related CEs from Atlas Academy.`,
+      `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
       "success"
     );
   } catch (_error) {
@@ -64,9 +64,16 @@ function normalizeServants(servants) {
       classIcon: createClassIcon(servant.className || "unknown"),
       gender: normalizeText(servant.gender || "unknown"),
       attribute: normalizeText(servant.attribute || "unknown"),
-      alignment: Array.isArray(servant.alignment)
-        ? servant.alignment.map((a) => humanizeTrait(String(a || ""))).filter(Boolean)
-        : [],
+      alignment: (() => {
+        if (Array.isArray(servant.alignment) && servant.alignment.length) {
+          return servant.alignment.map((a) => humanizeTrait(String(a || ""))).filter(Boolean);
+        }
+        const policy = servant.profile?.stats?.policy || servant.limits?.[0]?.policy;
+        const personality = servant.profile?.stats?.personality || servant.limits?.[0]?.personality;
+        return [policy, personality]
+          .map((a) => humanizeTrait(String(a || "")))
+          .filter((a) => a && a !== "none");
+      })(),
       traits: Array.isArray(servant.traits)
         ? servant.traits.map((trait) => humanizeTrait(trait?.name || ""))
         : [],
@@ -99,6 +106,5 @@ function normalizeCEs(craftEssences) {
         raw: ce
       };
     })
-    .filter((ce) => isBondBoostCE(ce.detail) && ce.percent > 0)
     .sort((left, right) => right.percent - left.percent || left.name.localeCompare(right.name));
 }
