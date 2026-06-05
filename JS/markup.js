@@ -71,26 +71,14 @@ function recommendationAffectedServantsMarkup(ce) {
   `).join("")}</div>`;
 }
 
-function recommendationMarkup(ce, index = 0) { const affectedServants = ce.affectedServants || [], hypotheticalTotal = Number(ce.totalBonus) || 0; return `
-  <div class="recommendation-card" data-recommendation-id="${ce.id}" title="${escapeHtml(ce.detail || "")}">
-    <div class="recommendation-card-body">
-      <div class="recommendation-card-header">
-        <img class="recommendation-thumb" src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
-        <div>
-          <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="badge text-bg-secondary">#${index + 1}</span>
-            <div class="fw-semibold">${escapeHtml(ce.name)}</div>
-          </div>
-          <div class="small text-muted mt-1">${escapeHtml(getCEEffectTag(ce))}</div>
-          <div class="recommendation-badges mt-2">
-            <span class="badge badge-soft">${formatPercent(ce.percent)}% each MLB</span>
-            <span class="badge text-bg-success">Hypothetical affected total +${formatPercent(hypotheticalTotal)}%</span>
-          </div>
-          <div class="small text-muted mt-2">Affects ${affectedServants.length} selected servant${affectedServants.length === 1 ? "" : "s"}.</div>
-          ${recommendationAffectedServantsMarkup(ce)}
-          <button type="button" class="btn btn-sm btn-primary mt-2" data-add-recommended-ce="${ce.id}">Add</button>
-        </div>
-      </div>
+function recommendationMarkup(ce, index = 0) { const affectedServants = ce.affectedServants || [], hypotheticalTotal = Number(ce.totalBonus) || 0, tag = getCEEffectTag(ce), affectedText = affectedServants.length ? affectedServants.map(({ servant, slotIndex, bonus }) => `Slot ${slotIndex + 1}: ${servant.name} +${formatPercent(bonus)}%`).join(" | ") : "Affects no selected servants."; return `
+  <div class="recommendation-card recommendation-card-basic" data-recommendation-id="${ce.id}" title="${escapeHtml(ce.name)} | ${escapeHtml(tag)} | Hypothetical total +${formatPercent(hypotheticalTotal)}% | ${escapeHtml(affectedText)} | ${escapeHtml(ce.detail || "")}">
+    <img class="recommendation-basic-image" src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
+    <div class="recommendation-basic-overlay">
+      <div class="recommendation-basic-rank">#${index + 1}</div>
+      <div class="recommendation-basic-name">${escapeHtml(ce.name)}</div>
+      <div class="recommendation-basic-total">+${formatPercent(hypotheticalTotal)}%</div>
+      <button type="button" class="btn btn-sm btn-primary recommendation-basic-add" data-add-recommended-ce="${ce.id}" title="Add this CE">Add</button>
     </div>
   </div>
 `; }
