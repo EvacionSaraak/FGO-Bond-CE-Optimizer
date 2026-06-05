@@ -112,14 +112,33 @@ function getConditionAliases(condition){const entry=Object.values(JP_CE_CONDITIO
 function servantMatchesCECondition(servant,condition){
   const entry=Object.values(JP_CE_CONDITION_ALIASES).find((item)=>item.label===condition);
   if(entry?.classes?.length)return entry.classes.includes(normalizeText(servant.className));
-  const rawTraits=Array.isArray(servant.traits)?servant.traits:[],traitIds=Array.isArray(servant.traitIds)?servant.traitIds:[],servantValues=[servant.name,servant.normalizedName,servant.className,servant.gender,servant.attribute,...(Array.isArray(servant.alignment)?servant.alignment:[]),...rawTraits,...traitIds].filter((value)=>value!==null&&value!==undefined);
+
+  const rawTraits=Array.isArray(servant.traits)?servant.traits:[];
+  const traitTokens=Array.isArray(servant.traitTokens)?servant.traitTokens:[];
+  const traitIds=Array.isArray(servant.traitIds)?servant.traitIds:[];
+  const rawObjectTraits=Array.isArray(servant.raw?.traits)?servant.raw.traits:[];
+
+  const servantValues=[
+    servant.name,
+    servant.normalizedName,
+    servant.className,
+    servant.gender,
+    servant.attribute,
+    ...(Array.isArray(servant.alignment)?servant.alignment:[]),
+    ...rawTraits,
+    ...traitTokens,
+    ...traitIds,
+    ...rawObjectTraits
+  ].filter((value)=>value!==null&&value!==undefined);
+
   const valueSet=new Set(servantValues.flatMap(getTraitTokensFromValue));
   const aliases=getConditionAliases(condition).flatMap(getTraitTokensFromValue);
+
   if(condition==="Living Human")aliases.push("2654","livinghuman","living human");
   if(condition==="Demi-Servant")aliases.push("940","demiservant","demi servant","demi-servant");
+
   return [...new Set(aliases.filter(Boolean))].some((alias)=>valueSet.has(alias));
 }
-
 function isGenericJapaneseBondCE(detail){const text=String(detail||"");return text.includes("絆")&&!getJapaneseBondConditionGroups(text).length;}
 function getCEEffectTag(ce){const groups=getJapaneseBondConditionGroups(ce?.detail||""),base=formatPercent(ce?.basePercent??(Number(ce?.percent||0)/getBondMLBMultiplier(ce?.name||""))),mlb=formatPercent(ce?.percent||0),target=groups.length?groups.map((group)=>group.join(" ")).join(" / "):"All";return`${target} +${base}% (${mlb}% MLB)`;}
 function matchesPartyWideBondRule(description){return["all allies","all party members","party members","all party","frontline allies","frontline servants","frontline party","all frontline","including sub members"].some((phrase)=>description.includes(phrase));}
