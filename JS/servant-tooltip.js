@@ -5,7 +5,7 @@ function initServantTooltip(){
   if(!tooltip){tooltip=document.createElement("div");tooltip.id="servant-tooltip";tooltip.className="servant-tooltip";document.body.appendChild(tooltip);}
 
   const renderTooltip=(servant)=>{
-    const alignment=Array.isArray(servant.alignment)&&servant.alignment.length?servant.alignment.map(toTitleCase).join(", "):"Unknown",traits=Array.isArray(servant.traits)&&servant.traits.length?servant.traits.slice(0,28).map(toTitleCase).join(", "):"None";
+    const alignment=Array.isArray(servant.alignment)&&servant.alignment.length?servant.alignment.map(toTitleCase).join(", "):"Unknown",traits=Array.isArray(servant.traits)&&servant.traits.length?[...servant.traits].map(toTitleCase).sort((a,b)=>a.localeCompare(b)).slice(0,28).join(", "):"None";
     tooltip.innerHTML=`
       <div class="servant-tooltip-name">${escapeHtml(servant.name)}</div>
       <div class="servant-tooltip-row"><span class="servant-tooltip-label">Class</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.className))}</span></div>
