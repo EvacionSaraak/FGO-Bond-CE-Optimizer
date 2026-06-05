@@ -6,12 +6,13 @@ function getHypotheticalCEBonusForServant(ce,servant,servantSlotIndex,ceSlotInde
 }
 
 function getCEAssignedSlotScore(ce,ceSlotIndex){
-  if(!state.selectedServants[ceSlotIndex])return 0;
-  return state.selectedServants.reduce((sum,servant,servantSlotIndex)=>sum+getHypotheticalCEBonusForServant(ce,servant,servantSlotIndex,ceSlotIndex,false),0);
+  const selectedServants=Array.isArray(state.selectedServants)?state.selectedServants:[];
+  return selectedServants.reduce((sum,servant,servantSlotIndex)=>sum+getHypotheticalCEBonusForServant(ce,servant,servantSlotIndex,ceSlotIndex,false),0);
 }
 
 function getCEAffectedServantsForAssignedSlot(ce,ceSlotIndex){
-  return state.selectedServants.map((servant,servantSlotIndex)=>({
+  const selectedServants=Array.isArray(state.selectedServants)?state.selectedServants:[];
+  return selectedServants.map((servant,servantSlotIndex)=>({
     servant,
     slotIndex:servantSlotIndex,
     bonus:getHypotheticalCEBonusForServant(ce,servant,servantSlotIndex,ceSlotIndex,false)
@@ -41,10 +42,12 @@ function isBetterAssignment(candidate,current){
 }
 
 function buildCERecommendations(){
-  const assignableSlots=state.selectedServants.map((servant,slotIndex)=>servant?slotIndex:null).filter((slotIndex)=>slotIndex!==null);
-  if(!assignableSlots.length)return [];
+  const selectedServants=Array.isArray(state.selectedServants)?state.selectedServants:[];
+  if(!selectedServants.some(Boolean))return [];
 
-  const candidates=state.ces.map(getCECandidateForOptimization).filter(Boolean).sort((left,right)=>right.bestScore-left.bestScore||left.ce.name.localeCompare(right.ce.name));
+  const assignableSlots=Array.from({length:SLOT_COUNT},(_,index)=>index);
+  const candidates=(Array.isArray(state.ces)?state.ces:[]).map(getCECandidateForOptimization).filter(Boolean).sort((left,right)=>right.bestScore-left.bestScore||left.ce.name.localeCompare(right.ce.name));
+
   const maxMask=1<<SLOT_COUNT;
   let dp=Array(maxMask).fill(null);
   dp[0]={score:0,items:[]};
