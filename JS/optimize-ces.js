@@ -54,10 +54,11 @@ function buildCERecommendations(){
 
     for(let mask=0;mask<maxMask;mask+=1){
       const base=dp[mask];
-      if(!base)return;
+      if(!base)continue;
 
       for(const slotIndex of assignableSlots){
         if(mask&(1<<slotIndex))continue;
+
         const slotScore=candidate.slotScores[slotIndex];
         if(slotScore<=0)continue;
 
@@ -79,11 +80,12 @@ function buildCERecommendations(){
 
 function handleOptimizeCEs(){
   state.recommendations=buildCERecommendations();
+  if(!Array.isArray(state.recommendations))state.recommendations=[];
   renderRecommendations();
 }
 
 function handleAddAllRecommendedCEs(){
-  if(!state.recommendations.length)return;
+  if(!Array.isArray(state.recommendations)||!state.recommendations.length)return;
 
   state.selectedCEs=Array(SLOT_COUNT).fill(null);
   state.selectedCEOwned=Array(SLOT_COUNT).fill(false);
