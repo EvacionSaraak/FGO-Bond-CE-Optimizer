@@ -7,13 +7,11 @@ function renderServantSlots() {
     return `<div class="selection-slot ${activeClass}" data-slot-type="servant" data-slot-index="${index}">
       ${servant ? `<button type="button" class="btn-close remove-entry" data-remove-type="servant" data-remove-index="${index}" aria-label="Remove servant"></button>` : ""}
       ${servant ? servantSlotMarkup(servant, index, totalBonus) : emptySlotMarkup("Servant", index)}
-      ${servant ? `<label class="small mt-2 d-flex gap-2 align-items-center slot-toggle"><input type="checkbox" data-servant-bond15-toggle="${index}" ${state.selectedServantBond15[index] ? "checked" : ""}> Max bond reached (Bond 15, +25% to other party members)</label>` : ""}
     </div>`;
   }).join("");
   bindSlotEvents(dom.servantSlots);
-  dom.servantSlots.querySelectorAll("[data-servant-bond15-toggle]").forEach((checkbox) => {
-    checkbox.addEventListener("click", (event) => event.stopPropagation());
-    checkbox.addEventListener("change", (event) => { const slotIndex = Number(event.currentTarget.dataset.servantBond15Toggle); state.selectedServantBond15[slotIndex] = Boolean(event.currentTarget.checked); renderAll(); });
+  dom.servantSlots.querySelectorAll("[data-servant-bond15-toggle]").forEach((button) => {
+    button.addEventListener("click", (event) => { event.stopPropagation(); const slotIndex = Number(event.currentTarget.dataset.servantBond15Toggle); state.selectedServantBond15[slotIndex] = !state.selectedServantBond15[slotIndex]; renderAll(); });
   });
 }
 
