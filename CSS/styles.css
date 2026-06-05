@@ -10,10 +10,10 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .compact-header-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}
 .compact-header-actions .btn{width:100%;white-space:nowrap;padding:.45rem .55rem;font-size:.82rem}
 .compact-status{margin:0}
-.sidebar-panel{position:sticky;top:1rem;max-height:calc(100vh - 2rem);display:block;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
-.sidebar-panel::-webkit-scrollbar,.recommendation-panel #recommendation-area::-webkit-scrollbar{width:.55rem}
-.sidebar-panel::-webkit-scrollbar-track,.recommendation-panel #recommendation-area::-webkit-scrollbar-track{background:transparent}
-.sidebar-panel::-webkit-scrollbar-thumb,.recommendation-panel #recommendation-area::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:999px}
+.sidebar-panel{position:sticky;top:1rem;max-height:calc(100vh - 2rem);display:flex;flex-direction:column;overflow:hidden;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+.recommendation-panel #recommendation-area::-webkit-scrollbar,.sidebar-results::-webkit-scrollbar{width:.55rem}
+.recommendation-panel #recommendation-area::-webkit-scrollbar-track,.sidebar-results::-webkit-scrollbar-track{background:transparent}
+.recommendation-panel #recommendation-area::-webkit-scrollbar-thumb,.sidebar-results::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:999px}
 .middle-stack{display:grid;grid-template-rows:auto auto minmax(0,2fr) minmax(0,1fr);gap:.75rem;height:calc(100vh - 2rem);min-height:0}
 .alert{border-color:var(--border);color:var(--text)}
 .btn{font-weight:700;border-radius:.7rem}
@@ -37,29 +37,30 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .compact-slot-grid .slot-filled{min-height:0}
 .slot-empty{align-items:center;justify-content:center;gap:.55rem;text-align:center;padding:1rem;color:var(--muted)}
 .slot-label{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
-.compact-slot-grid .slot-label{font-size:.68rem}
 .slot-image{width:100%;aspect-ratio:1/1;object-fit:cover;background:#0a0f17}
 .compact-slot-grid .slot-image{height:min(8.5rem,45%);aspect-ratio:auto;flex:0 0 auto}
 .slot-content{padding:.85rem;display:flex;flex-direction:column;gap:.42rem}
-.compact-slot-grid .slot-content{padding:.7rem;gap:.3rem;min-height:0;overflow:hidden}
-.slot-name{color:var(--text);font-weight:800;line-height:1.25}
-.compact-slot-grid .slot-name{font-size:.92rem;line-height:1.2}
-.slot-meta,.selection-total,.percent-note{color:var(--muted);font-size:.92rem}
-.compact-slot-grid .slot-meta,.compact-slot-grid .selection-total,.compact-slot-grid .percent-note{font-size:.8rem;line-height:1.25}
+.compact-slot-grid .slot-content{padding:.65rem;gap:.25rem;min-height:0;overflow:hidden}
+.slot-name{color:var(--text);font-weight:800;line-height:1.25;overflow-wrap:anywhere}
+.compact-slot-grid .slot-name{font-size:clamp(.68rem,.85vw,.9rem);line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.slot-meta,.selection-total,.percent-note{color:var(--muted);font-size:.92rem;overflow-wrap:anywhere}
+.compact-slot-grid .slot-meta,.compact-slot-grid .selection-total,.compact-slot-grid .percent-note{font-size:clamp(.62rem,.72vw,.78rem);line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.compact-slot-grid .selection-total{-webkit-line-clamp:1}
+.compact-slot-grid .slot-label{font-size:clamp(.55rem,.65vw,.68rem);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .selection-total{color:var(--good);font-weight:800}
 .slot-toggle{margin:0 .85rem .85rem;color:var(--muted)}
 .remove-entry{position:absolute;top:.45rem;right:.45rem;width:2rem;height:2rem;border:0;border-radius:999px;background:var(--danger);color:#fff;font-size:0;font-weight:900;z-index:2;opacity:.95;display:inline-flex;align-items:center;justify-content:center;padding:0}
 .remove-entry::before{content:"×";font-size:1.45rem;line-height:1;color:#fff;transform:translateY(-.04rem)}
 .remove-entry:hover{opacity:1;background:#ff3f55}
 .max-bond-toggle{width:fit-content;border:1px solid rgba(255,209,102,.42);background:rgba(255,209,102,.12);color:var(--warn);border-radius:999px;padding:.34rem .65rem;font-size:.78rem;font-weight:900;line-height:1.15}
-.compact-slot-grid .max-bond-toggle{font-size:.68rem;padding:.28rem .5rem}
+.compact-slot-grid .max-bond-toggle{max-width:100%;font-size:clamp(.55rem,.65vw,.68rem);padding:.25rem .45rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .max-bond-toggle:hover{background:rgba(255,209,102,.22);border-color:rgba(255,209,102,.75);color:#ffe29a}
 .max-bond-toggle.active{background:var(--warn);color:#1a1200;border-color:var(--warn)}
 .slot-max-bond{position:relative}
 .slot-max-bond::after{content:"MAX";position:absolute;top:.55rem;left:.55rem;z-index:2;background:var(--warn);color:#1a1200;border-radius:999px;padding:.25rem .55rem;font-size:.72rem;font-weight:900;letter-spacing:.06em;box-shadow:0 .35rem 1rem rgba(0,0,0,.35)}
 .selection-slot:has(.slot-max-bond){border-color:rgba(255,209,102,.42);background:color-mix(in srgb,var(--card) 86%,#ffd166 14%)}
 .sidebar-results,.recommendation-grid{display:grid;gap:.9rem}
-.sidebar-results{min-height:unset;overflow:visible;padding-right:0}
+.sidebar-results{min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:.25rem;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
 .sidebar-panel .form-label{display:block;font-weight:800;color:var(--text)}
 .sidebar-panel .form-control,.sidebar-panel .form-select{background:#111927;border:1px solid var(--border-strong);color:var(--text);min-height:2.35rem;border-radius:.65rem}
 .sidebar-panel .form-control::placeholder{color:var(--muted-2)}
@@ -115,7 +116,8 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
   .compact-slot-grid{height:auto}
   .compact-slot-grid .selection-slot{min-height:15rem;height:auto}
   .compact-slot-grid .slot-image{height:auto;aspect-ratio:1/1}
-  .sidebar-panel{position:relative;top:auto;max-height:75vh;overflow-y:auto}
+  .sidebar-panel{position:relative;top:auto;max-height:75vh;overflow:hidden}
+  .sidebar-results{min-height:0;overflow-y:auto}
   .recommendation-panel{max-height:70vh}
   .servant-card-top{grid-template-columns:3.75rem minmax(0,1fr)}
   .servant-card-thumb{width:3.75rem;height:3.75rem}
