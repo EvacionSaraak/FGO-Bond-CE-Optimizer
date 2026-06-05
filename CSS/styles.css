@@ -16,6 +16,13 @@ body {
   box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
 }
 
+.sidebar-panel {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
 .slot-grid {
   display: grid;
   gap: 0.9rem;
@@ -131,6 +138,11 @@ body {
   overflow: hidden;
 }
 
+.sidebar-card.sidebar-card-disabled {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
 .sidebar-card-body,
 .recommendation-card-body {
   padding: 0.85rem;
@@ -203,6 +215,12 @@ body {
 @media (max-width: 1399.98px) {
   .slot-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sidebar-panel {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 

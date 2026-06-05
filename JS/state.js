@@ -25,6 +25,7 @@ const state = {
   servants: [],
   ces: [],
   selectedServants: Array(SLOT_COUNT).fill(null),
+  selectedServantBond15: Array(SLOT_COUNT).fill(false),
   selectedCEs: Array(SLOT_COUNT).fill(null),
   selectedCEOwned: Array(SLOT_COUNT).fill(false),
   activeServantSlot: null,

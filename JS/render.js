@@ -23,12 +23,21 @@ function renderServantSlots() {
           <button class="slot-button" type="button" data-slot-type="servant" data-slot-index="${index}">
             ${servant ? servantSlotMarkup(servant, index, totalBonus) : emptySlotMarkup("Servant", index)}
           </button>
+          ${servant ? `<label class="form-check-label small mt-2 d-inline-flex align-items-center"><input class="form-check-input me-1" type="checkbox" data-servant-bond15-toggle="${index}" ${state.selectedServantBond15[index] ? "checked" : ""}>Bond 15 (+25% to other party members)</label>` : ""}
         </div>
       `;
     })
     .join("");
 
   bindSlotEvents(dom.servantSlots, "servant");
+  dom.servantSlots.querySelectorAll("[data-servant-bond15-toggle]").forEach((checkbox) => {
+    checkbox.addEventListener("click", (event) => event.stopPropagation());
+    checkbox.addEventListener("change", (event) => {
+      const slotIndex = Number(event.currentTarget.dataset.servantBond15Toggle);
+      state.selectedServantBond15[slotIndex] = Boolean(event.currentTarget.checked);
+      renderAll();
+    });
+  });
 }
 
 function renderCESlots() {
@@ -79,6 +88,7 @@ function bindSlotEvents(container) {
       const index = Number(event.currentTarget.dataset.removeIndex);
       if (type === "servant") {
         state.selectedServants[index] = null;
+        state.selectedServantBond15[index] = false;
       } else {
         state.selectedCEs[index] = null;
         state.selectedCEOwned[index] = false;
@@ -98,8 +108,11 @@ function renderServantSidebar() {
     ? `Showing ${visibleServants.length} servants affected by all selected Craft Essences.`
     : `Showing ${visibleServants.length} servants matching the current search.`;
 
+  const targetIndex = getTargetServantSlotIndex();
   dom.servantResults.innerHTML = visibleServants.length
-    ? visibleServants.map((servant) => servantCardMarkup(servant)).join("")
+    ? visibleServants
+        .map((servant) => servantCardMarkup(servant, !canAddServantToSelection(servant.id, targetIndex)))
+        .join("")
     : `<div class="empty-state">No servants match the current search and CE filters.</div>`;
 
   dom.servantResults.querySelectorAll("[data-add-servant]").forEach((button) => {
@@ -109,13 +122,15 @@ function renderServantSidebar() {
       if (!servant) {
         return;
       }
-      // Allow at most 2 copies of the same servant ID.
-      const copies = state.selectedServants.filter((entry) => entry?.id === servantId).length;
-      if (copies >= 2) {
+      const targetIndex = getTargetServantSlotIndex();
+      if (!canAddServantToSelection(servantId, targetIndex)) {
         return;
       }
-      const targetIndex = state.activeServantSlot ?? firstOpenSlot(state.selectedServants);
+      const previousServantId = state.selectedServants[targetIndex]?.id;
       state.selectedServants[targetIndex] = servant;
+      if (previousServantId !== servantId) {
+        state.selectedServantBond15[targetIndex] = false;
+      }
       state.servantOptimizationEnabled = false;
       renderAll();
     });

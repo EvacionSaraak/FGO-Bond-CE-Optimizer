@@ -39,9 +39,9 @@ function emptySlotMarkup(kind, index) {
   `;
 }
 
-function servantCardMarkup(servant) {
+function servantCardMarkup(servant, isAddDisabled = false) {
   return `
-    <article class="sidebar-card" data-servant-id="${servant.id}">
+    <article class="sidebar-card ${isAddDisabled ? "sidebar-card-disabled" : ""}" data-servant-id="${servant.id}">
       <div class="sidebar-card-body">
         <div class="sidebar-card-header">
           <img class="sidebar-thumb" src="${servant.image}" data-fallback-src="${servant.fallbackImage}" alt="${escapeHtml(servant.name)}" />
@@ -51,7 +51,7 @@ function servantCardMarkup(servant) {
               <img class="class-icon" src="${servant.classIcon}" alt="${escapeHtml(servant.className)} icon" />
               <span class="small text-secondary">${escapeHtml(toTitleCase(servant.className))}</span>
             </div>
-            <button class="btn btn-sm btn-primary" type="button" data-add-servant="${servant.id}">Add</button>
+            <button class="btn btn-sm btn-primary" type="button" data-add-servant="${servant.id}" ${isAddDisabled ? "disabled" : ""}>Add</button>
           </div>
         </div>
       </div>

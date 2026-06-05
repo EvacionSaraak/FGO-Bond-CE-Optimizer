@@ -28,6 +28,18 @@ function firstOpenSlot(collection) {
   return emptyIndex === -1 ? 0 : emptyIndex;
 }
 
+function getTargetServantSlotIndex() {
+  return state.activeServantSlot ?? firstOpenSlot(state.selectedServants);
+}
+
+function canAddServantToSelection(servantId, targetIndex = getTargetServantSlotIndex()) {
+  const currentServant = state.selectedServants[targetIndex];
+  const currentIsSameServant = currentServant?.id === servantId;
+  const existingCopies = state.selectedServants.filter((entry) => entry?.id === servantId).length;
+  const copiesAfterReplacingTarget = existingCopies - (currentIsSameServant ? 1 : 0);
+  return copiesAfterReplacingTarget < 2;
+}
+
 function humanizeTrait(traitName) {
   return normalizeText(
     String(traitName || "")
@@ -187,12 +199,21 @@ function getServantBondBonus(servantSlotIndex) {
     return 0;
   }
 
-  return state.selectedCEs.reduce((sum, ce, ceSlotIndex) => {
+  const partyBond15Bonus = state.selectedServants.reduce((sum, selectedServant, selectedSlotIndex) => {
+    if (!selectedServant || selectedSlotIndex === servantSlotIndex || !state.selectedServantBond15[selectedSlotIndex]) {
+      return sum;
+    }
+    return sum + 25;
+  }, 0);
+
+  const ceBonus = state.selectedCEs.reduce((sum, ce, ceSlotIndex) => {
     if (!ce || !doesCEAffectServant(ce, servant, ceSlotIndex, servantSlotIndex)) {
       return sum;
     }
     return sum + getCEBondPercent(ce, ceSlotIndex);
   }, 0);
+
+  return ceBonus + partyBond15Bonus;
 }
 
 function extractPrimaryImage(entry, type) {
