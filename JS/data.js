@@ -13,10 +13,14 @@ async function loadAtlasData() {
       servants = await fetchLocalJson(FALLBACK_SERVANT_JSON_URL, { resourceLabel: "Servants" }); loadedFromFallback = true;
       setStatus("Atlas servants unavailable. Loaded local servant fallback.\nLoading Craft Essences...", "warning");
     }
+
     state.servants = normalizeServants(servants); state.servantSidebarLoadingProgress = 50; state.ceSidebarLoadingProgress = 50; state.servantSidebarPage = 1; state.ceSidebarPage = 1; renderServantSidebar();
     setStatus("Loading local Craft Essence snapshot...", "secondary");
+
     const craftEssences = await fetchLocalJson(LOCAL_CE_JSON_URL, { resourceLabel: "Craft Essences" });
-    state.ces = normalizeCEs(craftEssences); state.servantSidebarLoading = false; state.ceSidebarLoading = false; state.servantSidebarLoadingProgress = 100; state.ceSidebarLoadingProgress = 100; state.dataMode = loadedFromFallback ? "fallback" : "remote";
+    state.ces = normalizeCEs(craftEssences);
+    state.servantSidebarLoading = false; state.ceSidebarLoading = false; state.servantSidebarLoadingProgress = 100; state.ceSidebarLoadingProgress = 100; state.dataMode = loadedFromFallback ? "fallback" : "remote";
+
     setStatus(loadedFromFallback ? `Loaded ${state.servants.length.toLocaleString()} servants (local fallback) and ${state.ces.length.toLocaleString()} local Craft Essences.\nChecking Atlas for CE updates...` : `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} local Craft Essences.\nChecking Atlas for CE updates...`, loadedFromFallback ? "warning" : "success");
     refreshCraftEssencesInBackground(); renderCESidebar();
   } catch (error) {
@@ -91,16 +95,34 @@ function normalizeCEs(craftEssences) {
       const hasBondText = isBondBoostCE(detail), hasBondFunction = hasBondGainFunction(ce.skills);
       if (!hasBondText && !hasBondFunction) return null;
       if (isServantPersonalBondCE(detail, ce)) return null;
+
       const percentInfo = extractBondPercents(detail, ce.name);
       const functionBasePercent = extractBondPercentFromFunctions(ce.skills);
       const basePercent = percentInfo.basePercent || functionBasePercent;
-      const mlbPercent = isFlatBondPointCE(ce.name) ? 0 : basePercent * 5;
+      const mlbMultiplier = getBondMLBMultiplier(ce.name);
+      const mlbPercent = isFlatBondPointCE(ce.name) ? 0 : basePercent * mlbMultiplier;
       if (mlbPercent <= 0) return null;
+
       const normalizedName = normalizeText(ce.name), hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && mlbPercent >= 15;
       const ownBasePercent = hasTeatimeOwnPenalty ? 1 : percentInfo.ownBasePercent || basePercent;
-      const ownMlbPercent = hasTeatimeOwnPenalty ? 5 : ownBasePercent * 5;
+      const ownMlbPercent = hasTeatimeOwnPenalty ? 5 : ownBasePercent * mlbMultiplier;
       const supportConditional = hasTeatimeOwnPenalty || percentInfo.isSupportConditional;
-      return { id: ce.id, name: ce.name, normalizedName, detail, normalizedDetail: normalizeText(detail), basePercent, percent: mlbPercent, ownBasePercent, ownPercent: ownMlbPercent, supportConditional, fallbackImage: createTextImage(ce.name, "#5a189a"), image: extractPrimaryImage(ce, "ce"), raw: ce };
+
+      return {
+        id: ce.id,
+        name: ce.name,
+        normalizedName,
+        detail,
+        normalizedDetail: normalizeText(detail),
+        basePercent,
+        percent: mlbPercent,
+        ownBasePercent,
+        ownPercent: ownMlbPercent,
+        supportConditional,
+        fallbackImage: createTextImage(ce.name, "#5a189a"),
+        image: extractPrimaryImage(ce, "ce"),
+        raw: ce
+      };
     })
     .filter(Boolean)
     .sort((left, right) => left.id - right.id);
