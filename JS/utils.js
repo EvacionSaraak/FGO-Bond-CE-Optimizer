@@ -111,10 +111,13 @@ function extractBondPercentFromFunctions(skills) {
 }
 
 function isBondBoostCE(detail) {
-  const lowered = String(detail || "").toLowerCase();
-  const hasBondKeyword = lowered.includes("bond") || lowered.includes("絆");
-  const hasBoostKeyword = /(increase|boost|gain|gained|up|アップ|増加|獲得)/.test(lowered);
-  return hasBondKeyword && hasBoostKeyword;
+  const text = normalizeText(detail || "");
+  if (!text) { return false; }
+  const hasJapaneseBond = detail.includes("絆");
+  const hasEnglishBond =
+    text.includes("bond") ||
+    text.includes("friendship");
+  return hasJapaneseBond || hasEnglishBond;
 }
 
 function isServantPersonalBondCE(detail, rawCE = null) {
