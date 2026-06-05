@@ -116,13 +116,18 @@ function extractBondPercentFromFunctions(skills) {
 }
 
 function isBondBoostCE(detail) {
-  const text = normalizeText(detail || "");
-  if (!text) { return false; }
-  const hasJapaneseBond = detail.includes("絆");
-  const hasEnglishBond =
-    text.includes("bond") ||
-    text.includes("friendship");
-  return hasJapaneseBond || hasEnglishBond;
+  const original = String(detail || "");
+  const text = normalizeText(original);
+  if (!original.trim()) { return false; }
+  if (original.includes("絆")) { return true; }
+  return (
+    text.includes("bond points") ||
+    text.includes("bond point") ||
+    text.includes("bond gained") ||
+    text.includes("bond gain") ||
+    text.includes("increases bond") ||
+    text.includes("friendship")
+  );
 }
 
 function isServantPersonalBondCE(detail, rawCE = null) {
@@ -130,17 +135,37 @@ function isServantPersonalBondCE(detail, rawCE = null) {
   return false;
 }
 
-function extractBondPercents(detail, ceName = "") {
-  const values = [...String(detail || "").matchAll(/(\d+)\s*[%％]/g)].map((match) => Number(match[1]));
-  const mlbPercent = values.length ? Math.max(...values) : 0;
-  const lowered = String(detail || "").toLowerCase();
-  const isSupportConditional = /\bsupport\b|サポート/.test(lowered) || normalizeText(ceName) === "chaldea teatime";
-  const ownPercent = isSupportConditional && values.length > 1 ? Math.min(...values) : mlbPercent;
-  return {
-    mlbPercent,
-    ownPercent,
-    isSupportConditional: isSupportConditional && ownPercent !== mlbPercent
+function extractBondPercentFromFunctions(skills) {
+  if (!Array.isArray(skills)) { return 0; }
+  let maxPercent = 0;
+  const isBondGainFunction = (func) => {
+    const type = normalizeText(func?.funcType || "");
+    return (
+      type === "servantfriendshipup" ||
+      type === "bondgain"
+    );
   };
+  for (const skill of skills) {
+    const functions = Array.isArray(skill.functions) ? skill.functions : [];
+    for (const func of functions) {
+      if (!isBondGainFunction(func)) { continue; }
+      const svals = Array.isArray(func.svals) ? func.svals : [];
+      for (const sval of svals) {
+        const raw = Number(
+          sval?.Value ??
+          sval?.value ??
+          sval?.Rate ??
+          sval?.rate ??
+          sval?.val ??
+          0
+        );
+        if (!raw) { continue; }
+        const percent = raw > 100 ? raw / 100 : raw;
+        if (percent > maxPercent) { maxPercent = percent; }
+      }
+    }
+  }
+  return maxPercent;
 }
 
 function isFlatBondPointCE(ceName = "") {
