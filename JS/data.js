@@ -11,42 +11,70 @@ async function loadAtlasData() {
   renderServantSidebar();
   renderCESidebar();
 
-  const servants = await fetchJsonWithRetry(SERVANT_API_URL, {
-    resourceLabel: "Servants",
-    updateProgress: (attempt) => {
-      state.servantSidebarLoadingProgress = Math.min(85, 20 + attempt * 10);
-      renderServantSidebar();
+  let loadedFromFallback = false;
+  try {
+    let servants;
+    try {
+      servants = await fetchJsonWithRetry(SERVANT_API_URL, {
+        resourceLabel: "Servants",
+        updateProgress: (attempt) => {
+          state.servantSidebarLoadingProgress = Math.min(85, 20 + attempt * 10);
+          renderServantSidebar();
+        }
+      });
+      setStatus("Servants loaded from Atlas Academy. Loading Craft Essences...", "secondary");
+    } catch (_error) {
+      servants = await fetchLocalJson(FALLBACK_SERVANT_JSON_URL, { resourceLabel: "Servants" });
+      loadedFromFallback = true;
+      setStatus("Atlas servants unavailable. Loaded local servant fallback. Loading Craft Essences...", "warning");
     }
-  });
-  state.servants = normalizeServants(servants);
-  state.servantSidebarLoading = false;
-  state.servantSidebarLoadingProgress = 100;
-  state.ceSidebarLoadingProgress = 40;
-  renderServantSidebar();
-  setStatus("Servants loaded. Loading Craft Essences...", "secondary");
 
-  // Load CEs from the targeted search endpoint (bond-gain CEs only, much smaller).
-  const craftEssences = await fetchJsonWithRetry(CE_API_URL, {
-    resourceLabel: "Craft Essence",
-    updateProgress: (attempt) => {
-      state.ceSidebarLoadingProgress = Math.min(95, 50 + attempt * 8);
-      renderCESidebar();
+    state.servants = normalizeServants(servants);
+    state.servantSidebarLoading = false;
+    state.servantSidebarLoadingProgress = 100;
+    state.ceSidebarLoadingProgress = 40;
+    renderServantSidebar();
+
+    // Load CEs from the targeted search endpoint (bond-gain CEs only, much smaller).
+    let craftEssences;
+    try {
+      craftEssences = await fetchJsonWithRetry(CE_API_URL, {
+        resourceLabel: "Craft Essence",
+        updateProgress: (attempt) => {
+          state.ceSidebarLoadingProgress = Math.min(95, 50 + attempt * 8);
+          renderCESidebar();
+        }
+      });
+    } catch (_error) {
+      craftEssences = await fetchLocalJson(FALLBACK_CE_JSON_URL, { resourceLabel: "Craft Essences" });
+      loadedFromFallback = true;
+      setStatus("Atlas Craft Essences unavailable. Loaded local CE fallback.", "warning");
     }
-  });
-  state.ces = normalizeCEs(craftEssences);
-  state.ceSidebarLoading = false;
-  state.ceSidebarLoadingProgress = 100;
-  setStatus(
-    `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
-    "success"
-  );
-  renderCESidebar();
+
+    state.ces = normalizeCEs(craftEssences);
+    state.ceSidebarLoading = false;
+    state.ceSidebarLoadingProgress = 100;
+    state.dataMode = loadedFromFallback ? "fallback" : "remote";
+    setStatus(
+      loadedFromFallback
+        ? `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences with local fallback data.`
+        : `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
+      loadedFromFallback ? "warning" : "success"
+    );
+    renderCESidebar();
+  } catch (error) {
+    state.servantSidebarLoading = false;
+    state.ceSidebarLoading = false;
+    state.servantSidebarLoadingProgress = 0;
+    state.ceSidebarLoadingProgress = 0;
+    setStatus(`Failed to load data from Atlas Academy and local fallbacks: ${error.message}`, "danger");
+  }
 }
 
 async function fetchJsonWithRetry(url, { resourceLabel, updateProgress }) {
   let attempt = 1;
   let delayMs = API_RETRY_BASE_DELAY_MS;
-  while (true) {
+  while (attempt <= API_RETRY_MAX_ATTEMPTS) {
     updateProgress?.(attempt);
     try {
       const response = await fetch(url, { cache: "no-store" });
@@ -55,6 +83,9 @@ async function fetchJsonWithRetry(url, { resourceLabel, updateProgress }) {
       }
       return await response.json();
     } catch (_error) {
+      if (attempt >= API_RETRY_MAX_ATTEMPTS) {
+        throw new Error(`${resourceLabel} request failed after ${API_RETRY_MAX_ATTEMPTS} attempts.`);
+      }
       const retrySeconds = Math.max(1, Math.round(delayMs / 1000));
       setStatus(`${resourceLabel} request failed (attempt ${attempt}). Retrying in ${retrySeconds}s...`, "warning");
       await wait(delayMs);
@@ -62,6 +93,15 @@ async function fetchJsonWithRetry(url, { resourceLabel, updateProgress }) {
       delayMs = Math.min(delayMs * 2, API_RETRY_MAX_DELAY_MS);
     }
   }
+  throw new Error(`${resourceLabel} request failed after ${API_RETRY_MAX_ATTEMPTS} attempts.`);
+}
+
+async function fetchLocalJson(url, { resourceLabel }) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`${resourceLabel} fallback HTTP ${response.status}`);
+  }
+  return await response.json();
 }
 
 function wait(milliseconds) {
