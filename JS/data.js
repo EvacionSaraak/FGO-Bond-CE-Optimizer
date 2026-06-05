@@ -188,7 +188,14 @@ function normalizeCEs(craftEssences) {
     .filter((ce) => {
       const hasBondText = isBondBoostCE(ce.detail);
       const hasBondFunction = (ce.raw?.skills ?? []).some((s) =>
-        (s.functions ?? []).some((f) => f.funcType === "bondGain")
+        (s.functions ?? []).some((f) => {
+          const type = normalizeText(f?.funcType || "");
+          return (
+            type === "bondgain" ||
+            type === "servantfriendshipup" ||
+            type.includes("friendship")
+          );
+        })
       );
       return ce.percent > 0 && (hasBondText || hasBondFunction) && !isServantPersonalBondCE(ce.detail, ce.raw);
     })
