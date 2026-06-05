@@ -184,6 +184,53 @@ body {
   opacity: 0.95;
 }
 
+.max-bond-toggle {
+  width: fit-content;
+  border: 1px solid rgba(255,209,102,0.42);
+  background: rgba(255,209,102,0.12);
+  color: var(--warn);
+  border-radius: 999px;
+  padding: 0.34rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.max-bond-toggle:hover {
+  background: rgba(255,209,102,0.22);
+  border-color: rgba(255,209,102,0.75);
+  color: #ffe29a;
+}
+
+.max-bond-toggle.active {
+  background: var(--warn);
+  color: #1a1200;
+  border-color: var(--warn);
+}
+
+.slot-max-bond { position: relative; }
+
+.slot-max-bond::after {
+  content: "MAX";
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  z-index: 2;
+  background: var(--warn);
+  color: #1a1200;
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0.35rem 1rem rgba(0,0,0,0.35);
+}
+
+.selection-slot:has(.slot-max-bond) {
+  border-color: rgba(255,209,102,0.42);
+  background: color-mix(in srgb, var(--card) 86%, #ffd166 14%);
+}
+
 .sidebar-results,
 .recommendation-grid {
   display: grid;
@@ -474,8 +521,3 @@ body {
   .sidebar-thumb,
   .recommendation-thumb { width: 3.75rem; height: 3.75rem; }
 }
-
-.slot-max-bond { position: relative; }
-.slot-max-bond::after { content: "MAX"; position: absolute; top: 0.55rem; left: 0.55rem; z-index: 2; background: var(--warn); color: #1a1200; border-radius: 999px; padding: 0.25rem 0.55rem; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.06em; box-shadow: 0 0.35rem 1rem rgba(0,0,0,0.35); }
-.max-bond-indicator { display: inline-flex; width: fit-content; align-items: center; gap: 0.35rem; background: rgba(255,209,102,0.16); color: var(--warn); border: 1px solid rgba(255,209,102,0.38); border-radius: 999px; padding: 0.28rem 0.55rem; font-size: 0.78rem; font-weight: 900; line-height: 1.2; }
-.selection-slot:has(.slot-max-bond) { border-color: rgba(255,209,102,0.42); background: color-mix(in srgb, var(--card) 86%, #ffd166 14%); }
