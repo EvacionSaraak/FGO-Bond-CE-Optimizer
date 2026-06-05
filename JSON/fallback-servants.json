@@ -1,0 +1,128 @@
+[
+  {
+    "id": 1001,
+    "collectionNo": 1,
+    "name": "Artoria Pendragon",
+    "className": "saber",
+    "type": "normal",
+    "gender": "female",
+    "attribute": "earth",
+    "alignment": ["lawful", "good"],
+    "traits": [{ "name": "dragon" }, { "name": "king" }, { "name": "humanoid" }, { "name": "servant" }, { "name": "weakToEnumaElish" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/6/66/S001_Stage1.webp"
+        }
+      }
+    }
+  },
+  {
+    "id": 1002,
+    "collectionNo": 2,
+    "name": "Mash Kyrielight",
+    "className": "shielder",
+    "type": "normal",
+    "gender": "female",
+    "attribute": "earth",
+    "alignment": ["neutral", "good"],
+    "traits": [{ "name": "humanoid" }, { "name": "servant" }, { "name": "demiServant" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/1/16/S001_Stage1Mash.webp"
+        }
+      }
+    }
+  },
+  {
+    "id": 1003,
+    "collectionNo": 12,
+    "name": "Gilgamesh",
+    "className": "archer",
+    "type": "normal",
+    "gender": "male",
+    "attribute": "sky",
+    "alignment": ["chaotic", "good"],
+    "traits": [{ "name": "king" }, { "name": "humanoid" }, { "name": "servant" }, { "name": "weakToEnumaElish" }, { "name": "greekMythologyMales" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/9/90/S012_Stage1.webp"
+        }
+      }
+    }
+  },
+  {
+    "id": 1004,
+    "collectionNo": 47,
+    "name": "Heracles",
+    "className": "berserker",
+    "type": "normal",
+    "gender": "male",
+    "attribute": "earth",
+    "alignment": ["chaotic", "mad"],
+    "traits": [{ "name": "greekMythologyMales" }, { "name": "humanoid" }, { "name": "servant" }, { "name": "weakToEnumaElish" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/6/6e/S047_Stage1.webp"
+        }
+      }
+    }
+  },
+  {
+    "id": 1005,
+    "collectionNo": 7,
+    "name": "Cu Chulainn",
+    "className": "lancer",
+    "type": "normal",
+    "gender": "male",
+    "attribute": "sky",
+    "alignment": ["battle", "neutral"],
+    "traits": [{ "name": "humanoid" }, { "name": "servant" }, { "name": "weakToEnumaElish" }, { "name": "celticMythologyMales" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/c/c0/S007_Stage1.webp"
+        }
+      }
+    }
+  },
+  {
+    "id": 1006,
+    "collectionNo": 59,
+    "name": "Jeanne d'Arc",
+    "className": "ruler",
+    "type": "normal",
+    "gender": "female",
+    "attribute": "star",
+    "alignment": ["lawful", "good"],
+    "traits": [{ "name": "humanoid" }, { "name": "servant" }, { "name": "weakToEnumaElish" }, { "name": "saberface" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/4/41/S059_Stage1.webp"
+        }
+      }
+    }
+  },
+  {
+    "id": 1007,
+    "collectionNo": 11,
+    "name": "EMIYA",
+    "className": "archer",
+    "type": "normal",
+    "gender": "male",
+    "attribute": "human",
+    "alignment": ["true", "neutral"],
+    "traits": [{ "name": "humanoid" }, { "name": "servant" }, { "name": "weakToEnumaElish" }],
+    "extraAssets": {
+      "faces": {
+        "ascension": {
+          "1": "https://static.wikia.nocookie.net/fategrandorder/images/e/eb/S011_Stage1.webp"
+        }
+      }
+    }
+  }
+]
