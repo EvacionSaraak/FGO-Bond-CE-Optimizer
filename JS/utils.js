@@ -102,34 +102,17 @@ function isBondBoostCE(detail) {
 }
 
 function isServantPersonalBondCE(detail, rawCE = null) {
-  // Atlas Academy sets bondEquipOwner to the servant's numeric ID (> 0) for Bond Level 10 CEs.
-  // Regular CEs have bondEquipOwner set to 0, so only treat positive values as personal.
-  if (rawCE != null && rawCE.bondEquipOwner > 0) {
+  // Atlas Academy marks true Bond Lv10 personal CEs with a positive owner.
+  // This should be the primary check.
+  if (Number(rawCE?.bondEquipOwner ?? 0) > 0) {
     return true;
   }
 
-  if (!isBondBoostCE(detail)) {
-    return false;
-  }
-
-  const normalized = normalizeText(detail || "");
-
-  // Party-wide or group-targeted CEs are not personal bond CEs.
-  if (matchesPartyWideBondRule(normalized)) {
-    return false;
-  }
-
-  // These terms only appear in descriptions that target a group, never a single servant.
-  const groupTerms = [
-    "allies", "party", "frontline", "members", "servants",
-    "class", "male", "female", "サーヴァント", "味方"
-  ];
-  if (groupTerms.some((term) => normalized.includes(term))) {
-    return false;
-  }
-
-  // A bond boost CE with no group terms targets a single specific servant.
-  return true;
+  // Do not guess personal Bond CE status from vague text.
+  // Generic Bond Growth CEs often say only:
+  // "Increases Bond Points gained by X%."
+  // Treat unknown-owner CEs as non-personal so they are not wrongly filtered out.
+  return false;
 }
 
 function extractBondPercents(detail, ceName = "") {
