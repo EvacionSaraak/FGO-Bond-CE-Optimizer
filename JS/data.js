@@ -151,26 +151,68 @@ function normalizeServants(servants) {
     .sort((left, right) => left.id - right.id);
 }
 
+function hasBondGainFunction(skills) {
+  if (!Array.isArray(skills)) {
+    return false;
+  }
+
+  return skills.some((skill) =>
+    (skill.functions ?? []).some((func) => {
+      const type = normalizeText(func?.funcType || "");
+
+      return (
+        type === "servantfriendshipup" ||
+        type === "bondgain"
+      );
+    })
+  );
+}
+
 function normalizeCEs(craftEssences) {
   return (Array.isArray(craftEssences) ? craftEssences : [])
     .filter((ce) => ce && ce.name)
     .map((ce) => {
-      // Atlas Academy stores the CE skill description in skills[0].detail.
-      // The top-level ce.detail is often empty; fall back through available fields.
       const detail =
         ce.skills?.[0]?.detail ||
         ce.detail ||
         ce.profile?.comments?.[0]?.comment ||
         "";
+
+      const hasBondText = isBondBoostCE(detail);
+      const hasBondFunction = hasBondGainFunction(ce.skills);
+
+      // Reject non-bond CEs before reading any percentages.
+      // This prevents NP charge, NP gain, crit, card buffs, etc. from becoming fake bond bonuses.
+      if (!hasBondText && !hasBondFunction) {
+        return null;
+      }
+
+      if (isServantPersonalBondCE(detail, ce)) {
+        return null;
+      }
+
       const percentInfo = extractBondPercents(detail, ce.name);
-      // If the live API uses {0}% format strings in skill detail, text extraction yields 0.
-      // Fall back to reading the actual values from the functions/svals data.
-      const parsedPercent = percentInfo.mlbPercent || extractBondPercentFromFunctions(ce.skills);
+      const parsedPercent =
+        percentInfo.mlbPercent ||
+        extractBondPercentFromFunctions(ce.skills);
+
       const mlbPercent = isFlatBondPointCE(ce.name) ? 0 : parsedPercent;
+
+      if (mlbPercent <= 0) {
+        return null;
+      }
+
       const normalizedName = normalizeText(ce.name);
-      const hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && mlbPercent >= 15;
-      const ownPercent = hasTeatimeOwnPenalty ? 5 : percentInfo.ownPercent || mlbPercent;
-      const supportConditional = hasTeatimeOwnPenalty || percentInfo.isSupportConditional;
+      const hasTeatimeOwnPenalty =
+        normalizedName === "chaldea teatime" && mlbPercent >= 15;
+
+      const ownPercent = hasTeatimeOwnPenalty
+        ? 5
+        : percentInfo.ownPercent || mlbPercent;
+
+      const supportConditional =
+        hasTeatimeOwnPenalty || percentInfo.isSupportConditional;
+
       return {
         id: ce.id,
         name: ce.name,
@@ -185,17 +227,6 @@ function normalizeCEs(craftEssences) {
         raw: ce
       };
     })
-    .filter((ce) => {
-      const hasBondText = isBondBoostCE(ce.detail);
-      const hasBondFunction = (ce.raw?.skills ?? []).some((s) =>
-        (s.functions ?? []).some((f) => {
-          const type = normalizeText(f?.funcType || "");
-      
-          return (
-            type === "servantfriendshipup" ||
-            type === "bondgain"
-          );
-        })
-      );
-      return ce.percent > 0 && (hasBondText || hasBondFunction) && !isServantPersonalBondCE(ce.detail, ce.raw); }).sort((left, right) => left.id - right.id);
+    .filter(Boolean)
+    .sort((left, right) => left.id - right.id);
 }
