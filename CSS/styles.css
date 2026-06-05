@@ -179,9 +179,27 @@ body {
   border-radius: 999px;
   background: var(--danger);
   color: #fff;
+  font-size: 0;
   font-weight: 900;
   z-index: 2;
   opacity: 0.95;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.remove-entry::before {
+  content: "×";
+  font-size: 1.45rem;
+  line-height: 1;
+  color: #fff;
+  transform: translateY(-0.04rem);
+}
+
+.remove-entry:hover {
+  opacity: 1;
+  background: #ff3f55;
 }
 
 .max-bond-toggle {
