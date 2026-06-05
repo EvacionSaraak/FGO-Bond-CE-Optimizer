@@ -28,6 +28,7 @@ function cacheDom() {
   dom.optimizeCEsButton = document.getElementById("optimize-ces-btn");
   dom.optimizeServantsButton = document.getElementById("optimize-servants-btn");
   dom.clearAllButton = document.getElementById("clear-all-btn");
+  dom.addAllRecommendedCEsButton = document.getElementById("add-all-recommended-ces-btn");
 }
 
 function bindEvents() {
@@ -35,11 +36,14 @@ function bindEvents() {
   dom.servantPageSize.addEventListener("change", (event) => { const parsed = Number(event.target.value); if (!Number.isFinite(parsed) || parsed <= 0) return; state.servantSidebarPageSize = parsed; state.servantSidebarPage = 1; renderServantSidebar(); });
   dom.servantPagePrev.addEventListener("click", () => { state.servantSidebarPage = Math.max(1, state.servantSidebarPage - 1); renderServantSidebar(); });
   dom.servantPageNext.addEventListener("click", () => { state.servantSidebarPage += 1; renderServantSidebar(); });
+
   dom.ceSearch.addEventListener("input", (event) => { state.ceSearch = event.target.value.trim(); state.ceSidebarPage = 1; renderCESidebar(); });
   dom.cePageSize?.addEventListener("change", (event) => { const parsed = Number(event.target.value); if (!Number.isFinite(parsed) || parsed <= 0) return; state.ceSidebarPageSize = parsed; state.ceSidebarPage = 1; renderCESidebar(); });
   dom.cePagePrev?.addEventListener("click", () => { state.ceSidebarPage = Math.max(1, state.ceSidebarPage - 1); renderCESidebar(); });
   dom.cePageNext?.addEventListener("click", () => { state.ceSidebarPage += 1; renderCESidebar(); });
+
   dom.optimizeCEsButton.addEventListener("click", handleOptimizeCEs);
   dom.optimizeServantsButton.addEventListener("click", handleOptimizeServants);
   dom.clearAllButton.addEventListener("click", handleClearAll);
+  dom.addAllRecommendedCEsButton?.addEventListener("click", handleAddAllRecommendedCEs);
 }
