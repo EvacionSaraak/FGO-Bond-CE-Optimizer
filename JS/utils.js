@@ -35,6 +35,8 @@ function isMashBondSupportServant(servant){const name=normalizeText(servant?.nam
 const JP_CE_CONDITION_ALIASES={
   "デミ・サーヴァント":{label:"Demi-Servant",aliases:["demi-servant","demi servant","demi servants"]},
   "デミサーヴァント":{label:"Demi-Servant",aliases:["demi-servant","demi servant","demi servants"]},
+  "今を生きる人類":{label:"Living Human",aliases:["living human","living humans","living humanity","humans living in the present"]},
+  "今を生きる人間":{label:"Living Human",aliases:["living human","living humans","living humanity","humans living in the present"]},
   "秩序":{label:"Lawful",aliases:["lawful"]},
   "混沌":{label:"Chaotic",aliases:["chaotic"]},
   "中立":{label:"Neutral",aliases:["neutral"]},
@@ -89,39 +91,35 @@ function japaneseConditionAliasMatches(jp,rawAlternative){
 }
 
 function getJapaneseBondConditionGroups(detail){
-  const text=String(detail||""),groups=[];
-  const sortedAliases=Object.entries(JP_CE_CONDITION_ALIASES).sort((a,b)=>b[0].length-a[0].length);
-
+  const text=String(detail||""),groups=[],sortedAliases=Object.entries(JP_CE_CONDITION_ALIASES).sort((a,b)=>b[0].length-a[0].length);
   const addGroupFromText=(raw)=>{
-    const source=String(raw||"");
-    const alternatives=source.split(/(?:または|又は|\/| or )/i);
+    const source=String(raw||""),alternatives=source.split(/(?:または|又は|\/| or )/i);
     for(const alternative of alternatives){
       const conditions=[];
-      for(const[jp,entry]of sortedAliases){
-        if(japaneseConditionAliasMatches(jp,alternative)&&!conditions.includes(entry.label))conditions.push(entry.label);
-      }
+      for(const[jp,entry]of sortedAliases){if(japaneseConditionAliasMatches(jp,alternative)&&!conditions.includes(entry.label))conditions.push(entry.label);}
       if(conditions.length)groups.push(conditions);
     }
   };
-
   for(const match of text.matchAll(/クエストクリア時に得られる(.+?)絆/g))addGroupFromText(match[1]);
   for(const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g))addGroupFromText(match[1]);
-
   return groups.filter((group,index,self)=>self.findIndex((other)=>other.join("|")===group.join("|"))===index);
 }
 
 function compactTrait(value){return normalizeText(String(value||"").replace(/[\s_-]+/g,""));}
 function getConditionAliases(condition){const entry=Object.values(JP_CE_CONDITION_ALIASES).find((item)=>item.label===condition);return[condition,...(entry?.aliases||[])];}
+
 function servantMatchesCECondition(servant,condition){
   const entry=Object.values(JP_CE_CONDITION_ALIASES).find((item)=>item.label===condition);
   if(entry?.classes?.length)return entry.classes.includes(normalizeText(servant.className));
   const servantValues=[servant.name,servant.normalizedName,servant.className,servant.gender,servant.attribute,...(Array.isArray(servant.alignment)?servant.alignment:[]),...(Array.isArray(servant.traits)?servant.traits:[])].filter(Boolean),valueSet=new Set(servantValues.flatMap((value)=>[normalizeText(value),compactTrait(value)]));
   return getConditionAliases(condition).some((alias)=>valueSet.has(normalizeText(alias))||valueSet.has(compactTrait(alias)));
 }
+
 function isGenericJapaneseBondCE(detail){const text=String(detail||"");return text.includes("絆")&&!getJapaneseBondConditionGroups(text).length;}
 function getCEEffectTag(ce){const groups=getJapaneseBondConditionGroups(ce?.detail||""),base=formatPercent(ce?.basePercent??(Number(ce?.percent||0)/getBondMLBMultiplier(ce?.name||""))),mlb=formatPercent(ce?.percent||0),target=groups.length?groups.map((group)=>group.join(" ")).join(" / "):"All";return`${target} +${base}% (${mlb}% MLB)`;}
 function matchesPartyWideBondRule(description){return["all allies","all party members","party members","all party","frontline allies","frontline servants","frontline party","all frontline","including sub members"].some((phrase)=>description.includes(phrase));}
 function isExceptSelfCE(description){return/(except yourself|except self|except equipped servant|excluding yourself|excluding the equipped servant)/.test(description);}
+
 function doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex,ignoreExceptSelf=false){
   if(!ce||!servant)return false;
   const jpConditionGroups=getJapaneseBondConditionGroups(ce.detail||"");
@@ -136,6 +134,7 @@ function doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex,ignoreExcep
   if(servant.attribute!=="unknown"&&(description.includes(`${servant.attribute} allies`)||description.includes(`${servant.attribute} servants`)||description.includes(`${servant.attribute} attribute`)))return true;
   return servant.traits.some((trait)=>trait&&description.includes(trait));
 }
+
 function getServantBondBonus(servantSlotIndex){
   const servant=state.selectedServants[servantSlotIndex];
   if(!servant)return 0;
