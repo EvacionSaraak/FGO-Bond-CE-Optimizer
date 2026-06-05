@@ -56,20 +56,30 @@
         </section>
       </aside>
 
-      <section class="col-12 col-xl-6 order-1 order-xl-2">
-        <section class="panel-section mb-3">
-          <h2 class="h5 mb-1">Servant lineup</h2>
-          <p class="text-muted small mb-3">Add servants from the left sidebar. Use the Max Bond button inside a filled servant slot to exclude that servant from CE optimization.</p>
-          <div id="servant-slots" class="slot-grid"></div>
+      <section class="col-12 col-xl-6 order-1 order-xl-2 middle-stack">
+        <section class="panel-section lineup-panel">
+          <div class="lineup-row">
+            <div class="lineup-row-header">
+              <div>
+                <h2 class="h5 mb-1">Servant lineup</h2>
+                <p class="text-muted small mb-0">Add servants from the left sidebar. Use Max Bond to exclude a servant from CE optimization.</p>
+              </div>
+            </div>
+            <div id="servant-slots" class="slot-grid compact-slot-grid"></div>
+          </div>
+
+          <div class="lineup-row">
+            <div class="lineup-row-header">
+              <div>
+                <h2 class="h5 mb-1">Craft Essences</h2>
+                <p class="text-muted small mb-0">Click a CE slot to choose where the next Craft Essence should be placed.</p>
+              </div>
+            </div>
+            <div id="ce-slots" class="slot-grid compact-slot-grid"></div>
+          </div>
         </section>
 
-        <section class="panel-section mb-3">
-          <h2 class="h5 mb-1">Craft Essences</h2>
-          <p class="text-muted small mb-3">Click a CE slot to choose where the next Craft Essence should be placed.</p>
-          <div id="ce-slots" class="slot-grid"></div>
-        </section>
-
-        <section class="panel-section">
+        <section class="panel-section recommendation-panel">
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
             <div>
               <h2 class="h5 mb-1">Optimizer output</h2>
