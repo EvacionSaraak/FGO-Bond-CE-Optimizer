@@ -33,6 +33,8 @@ function getOptimizedCEBondPercent(ce){if(!ce)return 0;return isDefaultOwnCE(ce)
 function isMashBondSupportServant(servant){const name=normalizeText(servant?.name||servant?.normalizedName||"");return name==="mash kyrielight"||name==="mashu kyrielight"||name.includes("mash kyrielight")||name.includes("mashu kyrielight");}
 
 const JP_CE_CONDITION_ALIASES={
+  "デミ・サーヴァント":{label:"Demi-Servant",aliases:["demi-servant","demi servant","demi servants"]},
+  "デミサーヴァント":{label:"Demi-Servant",aliases:["demi-servant","demi servant","demi servants"]},
   "秩序":{label:"Lawful",aliases:["lawful"]},
   "混沌":{label:"Chaotic",aliases:["chaotic"]},
   "中立":{label:"Neutral",aliases:["neutral"]},
@@ -46,12 +48,16 @@ const JP_CE_CONDITION_ALIASES={
   "男性":{label:"Male",aliases:["male"]},
   "女性":{label:"Female",aliases:["female"]},
   "性別不明":{label:"Unknown",aliases:["unknown"]},
-  "天":{label:"Sky",aliases:["sky"]},
-  "地":{label:"Earth",aliases:["earth"]},
-  "人":{label:"Man",aliases:["man"]},
+  "天":{label:"Sky",aliases:["sky","sky attribute"]},
+  "天属性":{label:"Sky",aliases:["sky","sky attribute"]},
+  "地":{label:"Earth",aliases:["earth","earth attribute"]},
+  "地属性":{label:"Earth",aliases:["earth","earth attribute"]},
+  "人":{label:"Man",aliases:["man","man attribute"]},
+  "人属性":{label:"Man",aliases:["man","man attribute"]},
   "星":{label:"Star",aliases:["star","star attribute"]},
   "星属性":{label:"Star",aliases:["star","star attribute"]},
-  "獣":{label:"Beast",aliases:["beast"]},
+  "獣":{label:"Beast",aliases:["beast","beast attribute"]},
+  "獣属性":{label:"Beast",aliases:["beast","beast attribute"]},
   "七騎士":{label:"Seven Knights",aliases:["seven knights","standard class","standard classes"],classes:["saber","archer","lancer","rider","caster","assassin","berserker"]},
   "ケモノ科":{label:"Animal Characteristic",aliases:["animal characteristic","animal characteristics","animal characteristics servant","animal trait","kemono"]},
   "衣装持ち":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
@@ -71,18 +77,36 @@ const JP_CE_CONDITION_ALIASES={
   "プリテンダー":{label:"Pretender",aliases:["pretender"]}
 };
 
+function normalizeJapaneseConditionText(value){return String(value||"").replace(/[「」『』【】\[\]\(\)（）]/g,"").replace(/\s+/g,"").trim();}
+
+function japaneseConditionAliasMatches(jp,rawAlternative){
+  const alternative=normalizeJapaneseConditionText(rawAlternative),alias=normalizeJapaneseConditionText(jp);
+  if(!alternative||!alias)return false;
+  if(alternative===alias)return true;
+  if(alternative.includes(`〔${jp}〕`))return true;
+  if(alias.length<=1)return alternative===alias||alternative===`${alias}属性`||alternative===`${alias}特性`;
+  return alternative.includes(alias);
+}
+
 function getJapaneseBondConditionGroups(detail){
   const text=String(detail||""),groups=[];
+  const sortedAliases=Object.entries(JP_CE_CONDITION_ALIASES).sort((a,b)=>b[0].length-a[0].length);
+
   const addGroupFromText=(raw)=>{
     const source=String(raw||"");
     const alternatives=source.split(/(?:または|又は|\/| or )/i);
     for(const alternative of alternatives){
-      const conditions=Object.entries(JP_CE_CONDITION_ALIASES).filter(([jp])=>alternative.includes(jp)).map(([,entry])=>entry.label);
-      if(conditions.length)groups.push([...new Set(conditions)]);
+      const conditions=[];
+      for(const[jp,entry]of sortedAliases){
+        if(japaneseConditionAliasMatches(jp,alternative)&&!conditions.includes(entry.label))conditions.push(entry.label);
+      }
+      if(conditions.length)groups.push(conditions);
     }
   };
+
   for(const match of text.matchAll(/クエストクリア時に得られる(.+?)絆/g))addGroupFromText(match[1]);
   for(const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g))addGroupFromText(match[1]);
+
   return groups.filter((group,index,self)=>self.findIndex((other)=>other.join("|")===group.join("|"))===index);
 }
 
