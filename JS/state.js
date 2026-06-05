@@ -1,6 +1,4 @@
 const SERVANT_API_URL = "https://api.atlasacademy.io/export/JP/nice_servant_lang_en.json";
-// Use the lore export so CE profile comments are available for bond CE detection.
-// Bond-gain CEs are still filtered locally during normalization.
 const CE_API_URL = "https://api.atlasacademy.io/export/JP/nice_equip_lore_lang_en.json";
 const LOCAL_CE_JSON_URL = "./JSON/nice_equip_lore_lang_en.json";
 const FALLBACK_SERVANT_JSON_URL = "./JSON/fallback-servants.json";
@@ -8,46 +6,7 @@ const API_RETRY_MAX_ATTEMPTS = 5;
 const SLOT_COUNT = 6;
 const CLASS_ICON_SIZE = 64;
 const SIDEBAR_PAGE_SIZE_OPTIONS = [10, 25, 50];
-
-const CLASS_COLORS = {
-  saber: "#3cb179",
-  archer: "#e0a800",
-  lancer: "#0dcaf0",
-  rider: "#6f42c1",
-  caster: "#0d6efd",
-  assassin: "#6c757d",
-  berserker: "#dc3545",
-  shielder: "#20c997",
-  ruler: "#f8f9fa",
-  avenger: "#6610f2",
-  mooncancer: "#fd7e14",
-  alterego: "#d63384",
-  foreigner: "#198754",
-  pretender: "#adb5bd",
-  beast: "#b02a37"
-};
-
-const state = {
-  servants: [],
-  ces: [],
-  selectedServants: Array(SLOT_COUNT).fill(null),
-  selectedServantBond15: Array(SLOT_COUNT).fill(false),
-  selectedCEs: Array(SLOT_COUNT).fill(null),
-  selectedCEOwned: Array(SLOT_COUNT).fill(false),
-  activeServantSlot: null,
-  activeCESlot: null,
-  servantSearch: "",
-  ceSearch: "",
-  servantSidebarLoading: true,
-  ceSidebarLoading: true,
-  servantSidebarLoadingProgress: 10,
-  ceSidebarLoadingProgress: 5,
-  servantOptimizationEnabled: false,
-  servantSidebarPage: 1,
-  servantSidebarPageSize: SIDEBAR_PAGE_SIZE_OPTIONS[0],
-  recommendations: [],
-  dataMode: "remote"
-};
-
+const CLASS_COLORS = { saber: "#3cb179", archer: "#e0a800", lancer: "#0dcaf0", rider: "#6f42c1", caster: "#0d6efd", assassin: "#6c757d", berserker: "#dc3545", shielder: "#20c997", ruler: "#f8f9fa", avenger: "#6610f2", mooncancer: "#fd7e14", alterego: "#d63384", foreigner: "#198754", pretender: "#adb5bd", beast: "#b02a37" };
+const state = { servants: [], ces: [], selectedServants: Array(SLOT_COUNT).fill(null), selectedServantBond15: Array(SLOT_COUNT).fill(false), selectedCEs: Array(SLOT_COUNT).fill(null), selectedCEOwned: Array(SLOT_COUNT).fill(false), activeServantSlot: null, activeCESlot: null, servantSearch: "", ceSearch: "", servantSidebarLoading: true, ceSidebarLoading: true, servantSidebarLoadingProgress: 10, ceSidebarLoadingProgress: 5, servantOptimizationEnabled: false, servantSidebarPage: 1, servantSidebarPageSize: SIDEBAR_PAGE_SIZE_OPTIONS[0], ceSidebarPage: 1, ceSidebarPageSize: SIDEBAR_PAGE_SIZE_OPTIONS[0], recommendations: [], dataMode: "remote" };
 const dom = {};
 const classIconCache = new Map();
