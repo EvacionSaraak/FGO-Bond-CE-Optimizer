@@ -68,11 +68,14 @@ function normalizeServants(servants) {
         if (Array.isArray(servant.alignment) && servant.alignment.length) {
           return servant.alignment.map((a) => humanizeTrait(String(a || ""))).filter(Boolean);
         }
-        const policy = servant.profile?.stats?.policy || servant.limits?.[0]?.policy;
-        const personality = servant.profile?.stats?.personality || servant.limits?.[0]?.personality;
-        return [policy, personality]
-          .map((a) => humanizeTrait(String(a || "")))
-          .filter((a) => a && a !== "none");
+        // Live API: alignment is encoded in traits as e.g. "alignmentLawful", "alignmentGood"
+        if (Array.isArray(servant.traits)) {
+          return servant.traits
+            .filter((t) => String(t?.name || "").toLowerCase().startsWith("alignment"))
+            .map((t) => humanizeTrait(String(t.name)))
+            .filter(Boolean);
+        }
+        return [];
       })(),
       traits: Array.isArray(servant.traits)
         ? servant.traits.map((trait) => humanizeTrait(trait?.name || ""))
