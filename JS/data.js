@@ -92,13 +92,15 @@ function normalizeCEs(craftEssences) {
       if (!hasBondText && !hasBondFunction) return null;
       if (isServantPersonalBondCE(detail, ce)) return null;
       const percentInfo = extractBondPercents(detail, ce.name);
-      const parsedPercent = percentInfo.mlbPercent || extractBondPercentFromFunctions(ce.skills);
-      const mlbPercent = isFlatBondPointCE(ce.name) ? 0 : parsedPercent;
+      const functionBasePercent = extractBondPercentFromFunctions(ce.skills);
+      const basePercent = percentInfo.basePercent || functionBasePercent;
+      const mlbPercent = isFlatBondPointCE(ce.name) ? 0 : basePercent * 5;
       if (mlbPercent <= 0) return null;
       const normalizedName = normalizeText(ce.name), hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && mlbPercent >= 15;
-      const ownPercent = hasTeatimeOwnPenalty ? 5 : percentInfo.ownPercent || mlbPercent;
+      const ownBasePercent = hasTeatimeOwnPenalty ? 1 : percentInfo.ownBasePercent || basePercent;
+      const ownMlbPercent = hasTeatimeOwnPenalty ? 5 : ownBasePercent * 5;
       const supportConditional = hasTeatimeOwnPenalty || percentInfo.isSupportConditional;
-      return { id: ce.id, name: ce.name, normalizedName, detail, normalizedDetail: normalizeText(detail), percent: mlbPercent, ownPercent, supportConditional, fallbackImage: createTextImage(ce.name, "#5a189a"), image: extractPrimaryImage(ce, "ce"), raw: ce };
+      return { id: ce.id, name: ce.name, normalizedName, detail, normalizedDetail: normalizeText(detail), basePercent, percent: mlbPercent, ownBasePercent, ownPercent: ownMlbPercent, supportConditional, fallbackImage: createTextImage(ce.name, "#5a189a"), image: extractPrimaryImage(ce, "ce"), raw: ce };
     })
     .filter(Boolean)
     .sort((left, right) => left.id - right.id);
