@@ -65,10 +65,8 @@ function bindSlotEvents(container) {
       const index = Number(event.currentTarget.dataset.slotIndex);
       if (type === "servant") {
         state.activeServantSlot = index;
-        state.activeCESlot = null;
       } else {
         state.activeCESlot = index;
-        state.activeServantSlot = null;
       }
       renderAll();
     });
@@ -91,16 +89,11 @@ function bindSlotEvents(container) {
 }
 
 function renderServantSidebar() {
-  const visible = state.activeServantSlot !== null;
-  dom.servantSidebar.classList.toggle("d-none", !visible);
-
-  if (!visible) {
-    return;
-  }
+  dom.servantSidebar.classList.remove("d-none");
 
   const slotIndex = state.activeServantSlot;
-  dom.servantSlotLabel.textContent = `Slot ${slotIndex + 1}`;
-  const visibleServants = getVisibleServantsForSidebar(slotIndex);
+  dom.servantSlotLabel.textContent = slotIndex !== null ? `Slot ${slotIndex + 1}` : "Any Slot";
+  const visibleServants = getVisibleServantsForSidebar(slotIndex ?? -1);
   dom.servantFilterSummary.textContent = state.servantOptimizationEnabled
     ? `Showing ${visibleServants.length} servants affected by all selected Craft Essences.`
     : `Showing ${visibleServants.length} servants matching the current search.`;
@@ -116,6 +109,11 @@ function renderServantSidebar() {
       if (!servant) {
         return;
       }
+      // Allow at most 2 copies of the same servant ID.
+      const copies = state.selectedServants.filter((entry) => entry?.id === servantId).length;
+      if (copies >= 2) {
+        return;
+      }
       const targetIndex = state.activeServantSlot ?? firstOpenSlot(state.selectedServants);
       state.selectedServants[targetIndex] = servant;
       state.servantOptimizationEnabled = false;
@@ -125,15 +123,10 @@ function renderServantSidebar() {
 }
 
 function renderCESidebar() {
-  const visible = state.activeCESlot !== null;
-  dom.ceSidebar.classList.toggle("d-none", !visible);
-
-  if (!visible) {
-    return;
-  }
+  dom.ceSidebar.classList.remove("d-none");
 
   const slotIndex = state.activeCESlot;
-  dom.ceSlotLabel.textContent = `CE Slot ${slotIndex + 1}`;
+  dom.ceSlotLabel.textContent = slotIndex !== null ? `CE Slot ${slotIndex + 1}` : "Any Slot";
   const search = normalizeText(state.ceSearch);
   const visibleCEs = state.ces.filter((ce) => !search || ce.normalizedName.includes(search));
   dom.ceFilterSummary.textContent = `Showing ${visibleCEs.length} Craft Essences.`;

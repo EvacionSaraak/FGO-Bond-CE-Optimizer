@@ -82,7 +82,7 @@ function normalizeServants(servants) {
         : [],
       raw: servant
     }))
-    .sort((left, right) => left.name.localeCompare(right.name));
+    .sort((left, right) => left.id - right.id);
 }
 
 function normalizeCEs(craftEssences) {
@@ -116,5 +116,5 @@ function normalizeCEs(craftEssences) {
       };
     })
     .filter((ce) => isBondBoostCE(ce.detail) && ce.percent > 0 && !isServantPersonalBondCE(ce.detail, ce.raw))
-    .sort((left, right) => right.percent - left.percent || left.name.localeCompare(right.name));
+    .sort((left, right) => left.id - right.id);
 }

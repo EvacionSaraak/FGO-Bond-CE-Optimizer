@@ -59,8 +59,9 @@ function isBondBoostCE(detail) {
 }
 
 function isServantPersonalBondCE(detail, rawCE = null) {
-  // Atlas Academy sets bondEquipOwner to the servant ID for Bond Level 10 CEs.
-  if (rawCE != null && rawCE.bondEquipOwner != null) {
+  // Atlas Academy sets bondEquipOwner to the servant's numeric ID (> 0) for Bond Level 10 CEs.
+  // Regular CEs have bondEquipOwner set to 0, so only treat positive values as personal.
+  if (rawCE != null && rawCE.bondEquipOwner > 0) {
     return true;
   }
 
