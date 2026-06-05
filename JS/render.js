@@ -39,14 +39,23 @@ function renderCESlots() {
         <div class="selection-slot ${activeClass}" data-slot-type="ce" data-slot-index="${index}">
           ${ce ? `<button class="remove-entry" type="button" data-remove-type="ce" data-remove-index="${index}" aria-label="Clear craft essence">×</button>` : ""}
           <button class="slot-button" type="button" data-slot-type="ce" data-slot-index="${index}">
-            ${ce ? ceSlotMarkup(ce, index) : emptySlotMarkup("Craft Essence", index)}
+            ${ce ? ceSlotMarkup(ce, index, state.selectedCEOwned[index]) : emptySlotMarkup("Craft Essence", index)}
           </button>
+          ${ce?.supportConditional ? `<label class="form-check-label small mt-2 d-inline-flex align-items-center"><input class="form-check-input me-1" type="checkbox" data-ce-owned-toggle="${index}" ${state.selectedCEOwned[index] ? "checked" : ""}>Own copy</label>` : ""}
         </div>
       `;
     })
     .join("");
 
   bindSlotEvents(dom.ceSlots, "ce");
+  dom.ceSlots.querySelectorAll("[data-ce-owned-toggle]").forEach((checkbox) => {
+    checkbox.addEventListener("click", (event) => event.stopPropagation());
+    checkbox.addEventListener("change", (event) => {
+      const slotIndex = Number(event.currentTarget.dataset.ceOwnedToggle);
+      state.selectedCEOwned[slotIndex] = Boolean(event.currentTarget.checked);
+      renderAll();
+    });
+  });
 }
 
 function bindSlotEvents(container) {
@@ -74,6 +83,7 @@ function bindSlotEvents(container) {
         state.selectedServants[index] = null;
       } else {
         state.selectedCEs[index] = null;
+        state.selectedCEOwned[index] = false;
       }
       renderAll();
     });
@@ -141,6 +151,7 @@ function renderCESidebar() {
       }
       const targetIndex = state.activeCESlot ?? firstOpenSlot(state.selectedCEs);
       state.selectedCEs[targetIndex] = ce;
+      state.selectedCEOwned[targetIndex] = false;
       renderAll();
     });
   });
@@ -177,6 +188,7 @@ function renderRecommendations() {
       }
       const targetIndex = state.activeCESlot ?? firstOpenSlot(state.selectedCEs);
       state.selectedCEs[targetIndex] = ce;
+      state.selectedCEOwned[targetIndex] = false;
       renderAll();
     });
   });

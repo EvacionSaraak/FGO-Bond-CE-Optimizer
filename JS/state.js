@@ -26,6 +26,7 @@ const state = {
   ces: [],
   selectedServants: Array(SLOT_COUNT).fill(null),
   selectedCEs: Array(SLOT_COUNT).fill(null),
+  selectedCEOwned: Array(SLOT_COUNT).fill(false),
   activeServantSlot: null,
   activeCESlot: null,
   servantSearch: "",

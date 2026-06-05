@@ -96,18 +96,25 @@ function normalizeCEs(craftEssences) {
         ce.detail ||
         ce.profile?.comments?.[0]?.comment ||
         "";
-      const percent = extractBondPercent(detail);
+      const percentInfo = extractBondPercents(detail, ce.name);
+      const normalizedName = normalizeText(ce.name);
+      const hasTeatimeOwnPenalty = normalizedName === "chaldea teatime" && percentInfo.mlbPercent >= 15;
+      const ownPercent = hasTeatimeOwnPenalty ? 5 : percentInfo.ownPercent;
+      const supportConditional = hasTeatimeOwnPenalty || percentInfo.isSupportConditional;
       return {
         id: ce.id,
         name: ce.name,
-        normalizedName: normalizeText(ce.name),
+        normalizedName,
         detail,
         normalizedDetail: normalizeText(detail),
-        percent,
+        percent: percentInfo.mlbPercent,
+        ownPercent,
+        supportConditional,
         fallbackImage: createTextImage(ce.name, "#5a189a"),
         image: extractPrimaryImage(ce, "ce"),
         raw: ce
       };
     })
+    .filter((ce) => isBondBoostCE(ce.detail) && ce.percent > 0)
     .sort((left, right) => right.percent - left.percent || left.name.localeCompare(right.name));
 }

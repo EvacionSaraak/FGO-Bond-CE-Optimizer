@@ -15,14 +15,15 @@ function servantSlotMarkup(servant, index, totalBonus) {
   `;
 }
 
-function ceSlotMarkup(ce, index) {
+function ceSlotMarkup(ce, index, isOwned) {
+  const effectivePercent = isOwned && ce.ownPercent > 0 ? ce.ownPercent : ce.percent;
   return `
     <div class="slot-filled">
       <img class="slot-image" src="${ce.image}" data-fallback-src="${ce.fallbackImage}" alt="${escapeHtml(ce.name)}" />
       <div class="slot-content">
         <div class="slot-label">Craft Essence ${index + 1}</div>
         <div class="slot-name">${escapeHtml(ce.name)}</div>
-        <div class="percent-note">Bond bonus: ${ce.percent}%</div>
+        <div class="percent-note">Bond bonus: ${effectivePercent}%</div>
       </div>
     </div>
   `;
@@ -68,7 +69,7 @@ function ceCardMarkup(ce) {
             <div class="fw-semibold mb-1">${escapeHtml(ce.name)}</div>
             <div class="detail-clamp mb-2">${escapeHtml(ce.detail)}</div>
             <div class="recommendation-badges mb-3">
-              <span class="badge rounded-pill badge-soft">${ce.percent}% bond</span>
+              <span class="badge rounded-pill badge-soft">${ce.percent}% bond (MLB)</span>
             </div>
             <button class="btn btn-sm btn-warning" type="button" data-add-ce="${ce.id}">Add</button>
           </div>
@@ -88,7 +89,7 @@ function recommendationMarkup(ce) {
           <div>
             <div class="fw-semibold mb-2">${escapeHtml(ce.name)}</div>
             <div class="recommendation-badges mb-2">
-              <span class="badge rounded-pill badge-soft">${ce.percent}% each</span>
+              <span class="badge rounded-pill badge-soft">${ce.percent}% each (MLB)</span>
               <span class="badge rounded-pill text-bg-primary">${Math.max(ce.totalBonus || 0, 0)}% total</span>
             </div>
             <div class="small text-secondary">Affects ${affectedServants.length} selected servant${affectedServants.length === 1 ? "" : "s"}.</div>

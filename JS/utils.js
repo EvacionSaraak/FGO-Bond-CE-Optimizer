@@ -47,13 +47,40 @@ function classAbbreviation(className) {
 }
 
 function extractBondPercent(detail) {
-  const matches = [...String(detail || "").matchAll(/(\d+)\s*%/g)].map((match) => Number(match[1]));
+  const matches = [...String(detail || "").matchAll(/(\d+)\s*[%％]/g)].map((match) => Number(match[1]));
   return matches.length ? Math.max(...matches) : 0;
 }
 
 function isBondBoostCE(detail) {
-  const normalized = normalizeText(detail || "");
-  return normalized.includes("bond") && /(increase|boost|gain|gained|up)/.test(normalized);
+  const lowered = String(detail || "").toLowerCase();
+  const hasBondKeyword = lowered.includes("bond") || lowered.includes("絆");
+  const hasBoostKeyword = /(increase|boost|gain|gained|up|アップ|増加|獲得)/.test(lowered);
+  return hasBondKeyword && hasBoostKeyword;
+}
+
+function extractBondPercents(detail, ceName = "") {
+  const values = [...String(detail || "").matchAll(/(\d+)\s*[%％]/g)].map((match) => Number(match[1]));
+  const mlbPercent = values.length ? Math.max(...values) : 0;
+  const lowered = String(detail || "").toLowerCase();
+  const isSupportConditional =
+    /\bsupport\b|サポート/.test(lowered) || normalizeText(ceName) === "chaldea teatime";
+  const ownPercent = isSupportConditional && values.length > 1 ? Math.min(...values) : mlbPercent;
+  return {
+    mlbPercent,
+    ownPercent,
+    isSupportConditional: isSupportConditional && ownPercent !== mlbPercent
+  };
+}
+
+function getCEBondPercent(ce, ceSlotIndex = null) {
+  if (!ce) {
+    return 0;
+  }
+  const isOwned = ceSlotIndex !== null && Boolean(state.selectedCEOwned[ceSlotIndex]);
+  if (isOwned && Number(ce.ownPercent) > 0) {
+    return ce.ownPercent;
+  }
+  return ce.percent;
 }
 
 function matchesPartyWideBondRule(description) {
@@ -133,7 +160,7 @@ function getServantBondBonus(servantSlotIndex) {
     if (!ce || !doesCEAffectServant(ce, servant, ceSlotIndex, servantSlotIndex)) {
       return sum;
     }
-    return sum + ce.percent;
+    return sum + getCEBondPercent(ce, ceSlotIndex);
   }, 0);
 }
 
