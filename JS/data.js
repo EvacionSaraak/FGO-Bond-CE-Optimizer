@@ -115,6 +115,6 @@ function normalizeCEs(craftEssences) {
         raw: ce
       };
     })
-    .filter((ce) => isBondBoostCE(ce.detail) && ce.percent > 0)
+    .filter((ce) => isBondBoostCE(ce.detail) && ce.percent > 0 && !isServantPersonalBondCE(ce.detail, ce.raw))
     .sort((left, right) => right.percent - left.percent || left.name.localeCompare(right.name));
 }

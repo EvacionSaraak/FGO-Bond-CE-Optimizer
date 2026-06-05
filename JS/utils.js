@@ -58,6 +58,36 @@ function isBondBoostCE(detail) {
   return hasBondKeyword && hasBoostKeyword;
 }
 
+function isServantPersonalBondCE(detail, rawCE = null) {
+  // Atlas Academy sets bondEquipOwner to the servant ID for Bond Level 10 CEs.
+  if (rawCE != null && rawCE.bondEquipOwner != null) {
+    return true;
+  }
+
+  if (!isBondBoostCE(detail)) {
+    return false;
+  }
+
+  const normalized = normalizeText(detail || "");
+
+  // Party-wide or group-targeted CEs are not personal bond CEs.
+  if (matchesPartyWideBondRule(normalized)) {
+    return false;
+  }
+
+  // These terms only appear in descriptions that target a group, never a single servant.
+  const groupTerms = [
+    "allies", "party", "frontline", "members", "servants",
+    "class", "male", "female", "サーヴァント", "味方"
+  ];
+  if (groupTerms.some((term) => normalized.includes(term))) {
+    return false;
+  }
+
+  // A bond boost CE with no group terms targets a single specific servant.
+  return true;
+}
+
 function extractBondPercents(detail, ceName = "") {
   const values = [...String(detail || "").matchAll(/(\d+)\s*[%％]/g)].map((match) => Number(match[1]));
   const mlbPercent = values.length ? Math.max(...values) : 0;
