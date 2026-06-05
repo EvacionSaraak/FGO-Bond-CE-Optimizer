@@ -100,13 +100,24 @@ function bindSlotEvents(container) {
 
 function renderServantSidebar() {
   dom.servantSidebar.classList.remove("d-none");
+  const isLoading = state.servantSidebarLoading;
+  dom.servantSidebar.classList.toggle("sidebar-loading", isLoading);
+  dom.servantSearch.disabled = isLoading;
+  dom.servantSearch.setAttribute("aria-busy", String(isLoading));
+  dom.servantResults.classList.toggle("sidebar-loading-results", isLoading);
 
   const slotIndex = state.activeServantSlot;
   dom.servantSlotLabel.textContent = slotIndex !== null ? `Slot ${slotIndex + 1}` : "Any Slot";
-  const visibleServants = getVisibleServantsForSidebar(slotIndex ?? -1);
+  const visibleServants = isLoading ? [] : getVisibleServantsForSidebar(slotIndex ?? -1);
   dom.servantFilterSummary.textContent = state.servantOptimizationEnabled
     ? `Showing ${visibleServants.length} servants affected by all selected Craft Essences.`
     : `Showing ${visibleServants.length} servants matching the current search.`;
+
+  if (isLoading) {
+    dom.servantFilterSummary.textContent = "Loading servants...";
+    dom.servantResults.innerHTML = sidebarLoadingMarkup("Loading servants");
+    return;
+  }
 
   const targetIndex = getTargetServantSlotIndex();
   dom.servantResults.innerHTML = visibleServants.length
@@ -139,9 +150,20 @@ function renderServantSidebar() {
 
 function renderCESidebar() {
   dom.ceSidebar.classList.remove("d-none");
+  const isLoading = state.ceSidebarLoading;
+  dom.ceSidebar.classList.toggle("sidebar-loading", isLoading);
+  dom.ceSearch.disabled = isLoading;
+  dom.ceSearch.setAttribute("aria-busy", String(isLoading));
+  dom.ceResults.classList.toggle("sidebar-loading-results", isLoading);
 
   const slotIndex = state.activeCESlot;
   dom.ceSlotLabel.textContent = slotIndex !== null ? `CE Slot ${slotIndex + 1}` : "Any Slot";
+  if (isLoading) {
+    dom.ceFilterSummary.textContent = "Loading Craft Essences...";
+    dom.ceResults.innerHTML = sidebarLoadingMarkup("Loading Craft Essences");
+    return;
+  }
+
   const search = normalizeText(state.ceSearch);
   const visibleCEs = state.ces.filter((ce) => !search || ce.normalizedName.includes(search));
   dom.ceFilterSummary.textContent = `Showing ${visibleCEs.length} Craft Essences.`;
@@ -163,6 +185,15 @@ function renderCESidebar() {
       renderAll();
     });
   });
+}
+
+function sidebarLoadingMarkup(label) {
+  return `
+    <div class="empty-state sidebar-loading-indicator" role="status" aria-live="polite">
+      <span class="sidebar-loading-spinner" aria-hidden="true"></span>
+      <span>${label}...</span>
+    </div>
+  `;
 }
 
 function renderRecommendations() {

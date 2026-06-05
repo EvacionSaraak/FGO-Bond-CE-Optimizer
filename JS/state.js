@@ -33,6 +33,8 @@ const state = {
   activeCESlot: null,
   servantSearch: "",
   ceSearch: "",
+  servantSidebarLoading: true,
+  ceSidebarLoading: true,
   servantOptimizationEnabled: false,
   recommendations: [],
   dataMode: "remote"

@@ -6,6 +6,7 @@ async function loadAtlasData() {
       throw new Error("Atlas Academy servant request failed.");
     }
     state.servants = normalizeServants(await servantResponse.json());
+    state.servantSidebarLoading = false;
     renderServantSidebar();
     setStatus("Servants loaded. Loading Craft Essences...", "secondary");
   } catch (_error) {
@@ -20,6 +21,7 @@ async function loadAtlasData() {
       throw new Error("Atlas Academy CE request failed.");
     }
     state.ces = normalizeCEs(await ceResponse.json());
+    state.ceSidebarLoading = false;
     state.dataMode = "remote";
     setStatus(
       `Loaded ${state.servants.length.toLocaleString()} servants and ${state.ces.length.toLocaleString()} Craft Essences from Atlas Academy.`,
@@ -34,6 +36,7 @@ async function loadAtlasData() {
     } catch (_fallbackError) {
       state.ces = [];
     }
+    state.ceSidebarLoading = false;
     setStatus(
       "Servants loaded from Atlas Academy. Craft Essence data fell back to the local dataset.",
       "warning"
@@ -54,6 +57,8 @@ async function loadFallbackData() {
     ]);
     state.servants = normalizeServants(servants);
     state.ces = normalizeCEs(craftEssences);
+    state.servantSidebarLoading = false;
+    state.ceSidebarLoading = false;
     state.dataMode = "fallback";
     setStatus(
       "Atlas Academy data could not be reached in this environment, so a small embedded fallback dataset is being used for local verification. The page still fetches the live API during normal use.",
@@ -62,6 +67,8 @@ async function loadFallbackData() {
   } catch (_error) {
     state.servants = [];
     state.ces = [];
+    state.servantSidebarLoading = false;
+    state.ceSidebarLoading = false;
     state.dataMode = "fallback";
     setStatus("Failed to load any data. Please refresh the page.", "danger");
   }

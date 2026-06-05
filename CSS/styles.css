@@ -130,6 +130,37 @@ body {
   gap: 0.9rem;
 }
 
+.sidebar-loading .form-control:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.sidebar-loading-results {
+  pointer-events: none;
+}
+
+.sidebar-loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.sidebar-loading-spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0.16rem solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(13, 202, 240, 0.95);
+  border-radius: 999px;
+  animation: sidebar-spin 0.8s linear infinite;
+}
+
+@keyframes sidebar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .sidebar-card,
 .recommendation-card {
   background: rgba(255, 255, 255, 0.03);
