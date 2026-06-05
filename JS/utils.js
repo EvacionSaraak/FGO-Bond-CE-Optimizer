@@ -96,18 +96,28 @@ function getJapaneseBondConditionGroups(detail){
   return groups.filter((group,index,self)=>self.findIndex((other)=>other.join("|")===group.join("|"))===index);
 }
 
-function normalizeTraitToken(value){if(value==null)return"";if(typeof value==="object")value=value.name||value.nameEn||value.detail||value.id||value.trait||JSON.stringify(value);return normalizeText(value);}
-function compactTrait(value){return normalizeTraitToken(value).replace(/[\s_-]+/g,"");}
+function normalizeTraitToken(value){if(value==null)return"";return normalizeText(value);}
+function getTraitTokensFromValue(value){
+  if(value==null)return [];
+  if(typeof value==="object"){
+    const rawValues=[value.id,value.trait,value.name,value.nameEn,value.detail,value.displayName,value.shortName,value.type].filter((entry)=>entry!==null&&entry!==undefined&&entry!=="");
+    return rawValues.flatMap(getTraitTokensFromValue);
+  }
+  const raw=String(value),spaced=raw.replace(/([a-z])([A-Z])/g,"$1 $2").replace(/[_-]/g," "),normalized=normalizeText(spaced),compact=normalized.replace(/[\s_-]+/g,""),originalNormalized=normalizeText(raw),tokens=[normalized,compact,originalNormalized];
+  if(/^\d+$/.test(raw))tokens.push(raw);
+  return [...new Set(tokens.filter(Boolean))];
+}
+function compactTrait(value){return getTraitTokensFromValue(value)[1]||normalizeText(value).replace(/[\s_-]+/g,"");}
 function getConditionAliases(condition){const entry=Object.values(JP_CE_CONDITION_ALIASES).find((item)=>item.label===condition);return[condition,...(entry?.aliases||[])];}
 function servantMatchesCECondition(servant,condition){
   const entry=Object.values(JP_CE_CONDITION_ALIASES).find((item)=>item.label===condition);
   if(entry?.classes?.length)return entry.classes.includes(normalizeText(servant.className));
   const rawTraits=Array.isArray(servant.traits)?servant.traits:[],traitIds=Array.isArray(servant.traitIds)?servant.traitIds:[],servantValues=[servant.name,servant.normalizedName,servant.className,servant.gender,servant.attribute,...(Array.isArray(servant.alignment)?servant.alignment:[]),...rawTraits,...traitIds].filter((value)=>value!==null&&value!==undefined);
-  const valueSet=new Set(servantValues.flatMap((value)=>[normalizeTraitToken(value),compactTrait(value)]));
-  const aliases=getConditionAliases(condition).flatMap((alias)=>[normalizeText(alias),compactTrait(alias)]);
-  if(condition==="Living Human")aliases.push("2654");
-  if(condition==="Demi-Servant")aliases.push("940");
-  return aliases.some((alias)=>valueSet.has(alias));
+  const valueSet=new Set(servantValues.flatMap(getTraitTokensFromValue));
+  const aliases=getConditionAliases(condition).flatMap(getTraitTokensFromValue);
+  if(condition==="Living Human")aliases.push("2654","livinghuman","living human");
+  if(condition==="Demi-Servant")aliases.push("940","demiservant","demi servant","demi-servant");
+  return [...new Set(aliases.filter(Boolean))].some((alias)=>valueSet.has(alias));
 }
 
 function isGenericJapaneseBondCE(detail){const text=String(detail||"");return text.includes("絆")&&!getJapaneseBondConditionGroups(text).length;}
