@@ -102,7 +102,8 @@ function sidebarLoadingMarkup(label,progress){const clampedProgress=Math.max(0,M
 function renderRecommendations(){
   const recommendations=state.recommendations;
   if(dom.addAllRecommendedCEsButton)dom.addAllRecommendedCEsButton.disabled=recommendations.length===0;
-  if(!recommendations.length){dom.recommendationArea.innerHTML=`<div class="empty-state">Click Optimize CEs to rank bond-focused Craft Essences.</div>`;return;}
+  if(!recommendations.length){dom.recommendationArea.classList.add("recommendation-grid-empty");dom.recommendationArea.innerHTML=`<div class="empty-state">Click Optimize CEs to rank bond-focused Craft Essences.</div>`;return;}
+  dom.recommendationArea.classList.remove("recommendation-grid-empty");
   dom.recommendationArea.innerHTML=recommendations.map((ce,index)=>recommendationMarkup(ce,index)).join("");
   dom.recommendationArea.querySelectorAll("[data-recommendation-id]").forEach((card)=>{const ceId=Number(card.dataset.recommendationId),ce=recommendations.find((entry)=>entry.id===ceId);if(!ce)return;card.addEventListener("mouseenter",()=>highlightAffectedServants(ce));card.addEventListener("mouseleave",clearHighlightedServants);});
   dom.recommendationArea.querySelectorAll("[data-add-recommended-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addRecommendedCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=isDefaultOwnCE(ce);renderAll();});});
