@@ -1,65 +1,65 @@
 [
   {
-    "id": 2001,
+    "id": 583,
     "name": "Chaldea Lunchtime",
     "skills": [
       { "detail": "Increase Bond gained by all allies except yourself by 10%." }
     ],
-    "extraAssets": { "faces": { "equip": { "2001": "https://static.wikia.nocookie.net/fategrandorder/images/7/7e/CE_583.png" } } }
+    "extraAssets": { "faces": { "equip": { "583": "https://static.wikia.nocookie.net/fategrandorder/images/7/7e/CE_583.png" } } }
   },
   {
-    "id": 2002,
+    "id": 941,
     "name": "Chaldea Teatime",
     "skills": [
       { "detail": "Increase Bond gained by all allies except yourself by 15%." }
     ],
-    "extraAssets": { "faces": { "equip": { "2002": "https://static.wikia.nocookie.net/fategrandorder/images/5/50/CE_941.png" } } }
+    "extraAssets": { "faces": { "equip": { "941": "https://static.wikia.nocookie.net/fategrandorder/images/5/50/CE_941.png" } } }
   },
   {
     "id": 2003,
-    "name": "Heroic Spirit Portrait: Artoria",
+    "name": "Heroic Portrait: Mash Kyrielight",
     "skills": [
-      { "detail": "Increase Bond gained by Artoria Pendragon by 50%." }
+      { "detail": "Increase Bond gained by Mash Kyrielight by 50%." }
     ],
     "extraAssets": { "faces": { "equip": { "2003": "https://static.wikia.nocookie.net/fategrandorder/images/8/82/CE_1183.png" } } }
   },
   {
     "id": 2004,
-    "name": "Field Guide to Sabers",
+    "name": "Heroic Portrait: Jeanne d'Arc",
     "skills": [
-      { "detail": "Increase Bond gained by Saber-class Servants by 20%." }
+      { "detail": "Increase Bond gained by Jeanne d'Arc by 50%." }
     ],
     "extraAssets": { "faces": { "equip": { "2004": "https://static.wikia.nocookie.net/fategrandorder/images/1/17/CE_048.png" } } }
   },
   {
     "id": 2005,
-    "name": "Frontline Bond Notes",
+    "name": "Formal Portrait: Mash Kyrielight",
     "skills": [
-      { "detail": "Increase Bond gained by all frontline allies by 5%." }
+      { "detail": "Increase Bond gained by Mash Kyrielight by 50%." }
     ],
     "extraAssets": { "faces": { "equip": { "2005": "https://static.wikia.nocookie.net/fategrandorder/images/4/49/CE_138.png" } } }
   },
   {
     "id": 2006,
-    "name": "Male Bond Seminar",
+    "name": "Formal Portrait: Jeanne d'Arc",
     "skills": [
-      { "detail": "Increase Bond gained by male allies by 12%." }
+      { "detail": "Increase Bond gained by Jeanne d'Arc by 50%." }
     ],
     "extraAssets": { "faces": { "equip": { "2006": "https://static.wikia.nocookie.net/fategrandorder/images/f/f5/CE_227.png" } } }
   },
   {
     "id": 2007,
-    "name": "King's Attendance",
+    "name": "Travel Portrait: Mash Kyrielight",
     "skills": [
-      { "detail": "Increase Bond gained by king allies by 18%." }
+      { "detail": "Increase Bond gained by Mash Kyrielight by 50%." }
     ],
     "extraAssets": { "faces": { "equip": { "2007": "https://static.wikia.nocookie.net/fategrandorder/images/b/bb/CE_667.png" } } }
   },
   {
     "id": 2008,
-    "name": "Bella Lisa",
+    "name": "Sightseeing Portrait: Jeanne d'Arc",
     "skills": [
-      { "detail": "Increase QP gained during quest clear by 15%." }
+      { "detail": "Increase Bond gained by Jeanne d'Arc by 50%." }
     ],
     "extraAssets": { "faces": { "equip": { "2008": "https://static.wikia.nocookie.net/fategrandorder/images/7/71/CE_717.png" } } }
   }
