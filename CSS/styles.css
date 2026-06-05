@@ -10,7 +10,8 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .compact-header-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}
 .compact-header-actions .btn{width:100%;white-space:nowrap;padding:.45rem .55rem;font-size:.82rem}
 .compact-status{margin:0}
-.sidebar-panel{position:sticky;top:1rem;max-height:calc(100vh - 2rem);display:flex;flex-direction:column;overflow:hidden;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+.sidebar-panel{position:sticky;top:1rem;max-height:calc(100vh - 2rem);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-panel>h2,.sidebar-panel>p,.sidebar-panel>div:not(.sidebar-results),.sidebar-panel>label,.sidebar-panel>input,.sidebar-panel>select{flex:0 0 auto}
 .recommendation-panel #recommendation-area::-webkit-scrollbar,.sidebar-results::-webkit-scrollbar{width:.55rem}
 .recommendation-panel #recommendation-area::-webkit-scrollbar-track,.sidebar-results::-webkit-scrollbar-track{background:transparent}
 .recommendation-panel #recommendation-area::-webkit-scrollbar-thumb,.sidebar-results::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:999px}
@@ -60,7 +61,7 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .slot-max-bond::after{content:"MAX";position:absolute;top:.55rem;left:.55rem;z-index:2;background:var(--warn);color:#1a1200;border-radius:999px;padding:.25rem .55rem;font-size:.72rem;font-weight:900;letter-spacing:.06em;box-shadow:0 .35rem 1rem rgba(0,0,0,.35)}
 .selection-slot:has(.slot-max-bond){border-color:rgba(255,209,102,.42);background:color-mix(in srgb,var(--card) 86%,#ffd166 14%)}
 .sidebar-results,.recommendation-grid{display:grid;gap:.9rem}
-.sidebar-results{min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:.25rem;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+.sidebar-results{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;display:grid;grid-auto-rows:max-content;align-content:start;gap:.9rem;padding-right:.25rem;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
 .sidebar-panel .form-label{display:block;font-weight:800;color:var(--text)}
 .sidebar-panel .form-control,.sidebar-panel .form-select{background:#111927;border:1px solid var(--border-strong);color:var(--text);min-height:2.35rem;border-radius:.65rem}
 .sidebar-panel .form-control::placeholder{color:var(--muted-2)}
@@ -75,12 +76,15 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .sidebar-loading-ring{width:3rem;height:3rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:conic-gradient(var(--accent) calc(var(--loading-progress,0) * 1%),rgba(255,255,255,.16) 0)}
 .sidebar-loading-ring-core{width:2.25rem;height:2.25rem;border-radius:999px;background:var(--panel);border:1px solid var(--border);color:var(--accent-2);font-size:.72rem;font-weight:900;display:inline-flex;align-items:center;justify-content:center}
 .sidebar-card,.result-card,.recommendation-card{background:var(--card);border:1px solid var(--border);border-radius:1rem;overflow:hidden;color:var(--text);transition:border-color .15s ease,background .15s ease,transform .15s ease}
+.sidebar-card{height:auto;min-height:max-content;align-self:start}
 .sidebar-card:hover,.result-card:hover,.recommendation-card:hover{background:var(--card-2);border-color:rgba(102,183,255,.55)}
 .sidebar-card.sidebar-card-disabled,.result-card:disabled{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);opacity:.5;cursor:not-allowed}
 .sidebar-card-body,.recommendation-card-body{padding:.9rem}
+.sidebar-card-body{height:auto}
 .sidebar-card-header,.recommendation-card-header{display:grid;grid-template-columns:4.5rem minmax(0,1fr);gap:.9rem;align-items:start}
 .sidebar-thumb,.recommendation-thumb{width:4.5rem;height:4.5rem;object-fit:cover;border-radius:.75rem;background:#0a0f17;border:1px solid var(--border)}
-.servant-sidebar-card .sidebar-card-body{padding:.85rem}
+.servant-sidebar-card{min-height:max-content}
+.servant-sidebar-card .sidebar-card-body{padding:.85rem;display:block}
 .servant-card-top{display:grid;grid-template-columns:4rem minmax(0,1fr);gap:.75rem;align-items:center}
 .servant-card-thumb{width:4rem;height:4rem;border-radius:.75rem}
 .servant-card-main{min-width:0}
@@ -116,8 +120,8 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
   .compact-slot-grid{height:auto}
   .compact-slot-grid .selection-slot{min-height:15rem;height:auto}
   .compact-slot-grid .slot-image{height:auto;aspect-ratio:1/1}
-  .sidebar-panel{position:relative;top:auto;max-height:75vh;overflow:hidden}
-  .sidebar-results{min-height:0;overflow-y:auto}
+  .sidebar-panel{position:relative;top:auto;max-height:75vh;display:flex;flex-direction:column;overflow:hidden}
+  .sidebar-results{flex:1 1 auto;min-height:0;overflow-y:auto}
   .recommendation-panel{max-height:70vh}
   .servant-card-top{grid-template-columns:3.75rem minmax(0,1fr)}
   .servant-card-thumb{width:3.75rem;height:3.75rem}
