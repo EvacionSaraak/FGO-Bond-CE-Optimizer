@@ -31,21 +31,21 @@ function emptySlotMarkup(kind, index) { return `
 `; }
 
 function servantCardMarkup(servant, isAddDisabled = false) { const gender = toTitleCase(servant.gender || "unknown"), attribute = toTitleCase(servant.attribute || "unknown"), alignment = Array.isArray(servant.alignment) && servant.alignment.length ? servant.alignment.map(toTitleCase).join(" / ") : "Unknown"; return `
-  <button type="button" class="sidebar-card ${isAddDisabled ? "sidebar-card-disabled" : ""} w-100 text-start p-0" data-add-servant="${servant.id}" data-servant-id="${servant.id}" ${isAddDisabled ? "disabled" : ""}>
+  <button type="button" class="sidebar-card servant-sidebar-card ${isAddDisabled ? "sidebar-card-disabled" : ""} w-100 text-start p-0" data-add-servant="${servant.id}" data-servant-id="${servant.id}" ${isAddDisabled ? "disabled" : ""}>
     <div class="sidebar-card-body">
-      <div class="sidebar-card-header">
-        <img class="sidebar-thumb" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
-        <div>
-          <div class="fw-semibold">${escapeHtml(servant.name)}</div>
+      <div class="servant-card-top">
+        <img class="sidebar-thumb servant-card-thumb" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
+        <div class="servant-card-main">
+          <div class="fw-semibold servant-card-name">${escapeHtml(servant.name)}</div>
           <div class="class-row small text-muted mt-1"><img class="class-icon" src="${escapeHtml(servant.classIcon)}" alt="">${escapeHtml(toTitleCase(servant.className))}</div>
-          <div class="servant-card-details small mt-2">
-            <div><span>Gender</span><strong>${escapeHtml(gender)}</strong></div>
-            <div><span>Attribute</span><strong>${escapeHtml(attribute)}</strong></div>
-            <div><span>Alignment</span><strong>${escapeHtml(alignment)}</strong></div>
-          </div>
-          <span class="badge ${isAddDisabled ? "text-bg-secondary" : "text-bg-primary"} mt-2">${isAddDisabled ? "Max 2 / Full" : "Add"}</span>
         </div>
       </div>
+      <div class="servant-card-details small mt-2">
+        <div><span>Gender</span><strong>${escapeHtml(gender)}</strong></div>
+        <div><span>Attribute</span><strong>${escapeHtml(attribute)}</strong></div>
+        <div><span>Alignment</span><strong>${escapeHtml(alignment)}</strong></div>
+      </div>
+      <span class="badge ${isAddDisabled ? "text-bg-secondary" : "text-bg-primary"} mt-2">${isAddDisabled ? "Max 2 / Full" : "Add"}</span>
     </div>
   </button>
 `; }
