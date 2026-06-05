@@ -1,5 +1,5 @@
 const SERVANT_API_URL = "https://api.atlasacademy.io/export/JP/nice_servant_lang_en.json";
-const CE_API_URL = "https://api.atlasacademy.io/export/JP/nice_equip_lang_en.json";
+const CE_API_URL = "https://api.atlasacademy.io/export/JP/nice_equip_lore_lang_en.json";
 const SLOT_COUNT = 6;
 const CLASS_ICON_SIZE = 64;
 
