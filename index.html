@@ -27,10 +27,10 @@
       <aside class="col-12 col-xl-3 order-2 order-xl-1">
         <section id="servant-sidebar" class="sidebar-panel d-none mb-3">
           <h2 class="h5 mb-2">Servants</h2>
-          <p class="text-muted small mb-3">Select a servant slot to add or replace a servant.</p>
+          <p class="text-muted small mb-3">Servants are always added to the next empty slot.</p>
 
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <span id="servant-sidebar-slot-label" class="badge text-bg-secondary">Slot 1</span>
+            <span id="servant-sidebar-slot-label" class="badge text-bg-secondary">Next Empty Slot 1</span>
             <span id="servant-filter-summary" class="small text-muted"></span>
           </div>
 
@@ -57,23 +57,23 @@
       </aside>
 
       <section class="col-12 col-xl-6 order-1 order-xl-2">
-        <section class="main-panel mb-3">
+        <section class="panel-section mb-3">
           <h2 class="h5 mb-1">Servant lineup</h2>
-          <p class="text-muted small mb-3">Click a top slot to open the servant sidebar.</p>
-          <div id="servant-slots" class="selection-grid"></div>
+          <p class="text-muted small mb-3">Add servants from the left sidebar. Use the Max Bond button inside a filled servant slot to exclude that servant from CE optimization.</p>
+          <div id="servant-slots" class="slot-grid"></div>
         </section>
 
-        <section class="main-panel mb-3">
+        <section class="panel-section mb-3">
           <h2 class="h5 mb-1">Craft Essences</h2>
-          <p class="text-muted small mb-3">Click a bottom slot to open the CE sidebar.</p>
-          <div id="ce-slots" class="selection-grid"></div>
+          <p class="text-muted small mb-3">Click a CE slot to choose where the next Craft Essence should be placed.</p>
+          <div id="ce-slots" class="slot-grid"></div>
         </section>
 
-        <section class="main-panel">
+        <section class="panel-section">
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
             <div>
               <h2 class="h5 mb-1">Optimizer output</h2>
-              <p class="text-muted small mb-0">Bond CE recommendations are ranked from the currently selected servants.</p>
+              <p class="text-muted small mb-0">Recommendations show the hypothetical total bond bonus provided to affected, non-max-bond servants.</p>
             </div>
             <button id="add-all-recommended-ces-btn" type="button" class="btn btn-sm btn-success" disabled>Add all 6 recommended CEs</button>
           </div>
