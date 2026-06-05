@@ -1,7 +1,7 @@
 const SERVANT_API_URL = "https://api.atlasacademy.io/export/JP/nice_servant_lang_en.json";
-// Atlas Academy's equip search endpoint does not support funcType filtering for CEs.
-// Load the documented export and filter bond-gain CEs locally during normalization.
-const CE_API_URL = "https://api.atlasacademy.io/export/JP/nice_equip_lang_en.json";
+// Use the lore export so CE profile comments are available for bond CE detection.
+// Bond-gain CEs are still filtered locally during normalization.
+const CE_API_URL = "https://api.atlasacademy.io/export/JP/nice_equip_lore_lang_en.json";
 const FALLBACK_SERVANT_JSON_URL = "./JSON/fallback-servants.json";
 const FALLBACK_CE_JSON_URL = "./JSON/fallback-ces.json";
 const API_RETRY_MAX_ATTEMPTS = 5;

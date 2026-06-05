@@ -35,7 +35,7 @@ async function loadAtlasData() {
     state.ceSidebarLoadingProgress = 40;
     renderServantSidebar();
 
-    // Load CEs from the targeted search endpoint (bond-gain CEs only, much smaller).
+    // Load the lore CE export so profile comments are available for bond CE detection.
     let craftEssences;
     try {
       craftEssences = await fetchJsonWithRetry(CE_API_URL, {
