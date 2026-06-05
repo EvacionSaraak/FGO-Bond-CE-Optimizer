@@ -106,6 +106,8 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .detail-clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);font-size:.92rem}
 .empty-state{border:1px dashed var(--border-strong);border-radius:1rem;padding:1.15rem;color:var(--muted);text-align:center;background:rgba(255,255,255,.04)}
 .recommendation-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem;align-content:start}
+.recommendation-grid-empty{grid-template-columns:1fr;height:100%}
+.recommendation-grid-empty>.empty-state{width:100%;height:100%;min-height:100%;display:flex;align-items:center;justify-content:center}
 .recommendation-card-basic{position:relative;min-height:0;height:100%;aspect-ratio:1/1.18;overflow:hidden;border-radius:1rem;background:#0a0f17}
 .recommendation-basic-image{width:100%;height:100%;object-fit:cover;display:block}
 .recommendation-basic-rank{position:absolute;top:.35rem;left:.35rem;z-index:3;background:rgba(16,21,31,.86);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.16rem .42rem;color:var(--accent-2);font-size:clamp(.55rem,.6vw,.7rem);font-weight:900}
@@ -155,6 +157,7 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
   .sidebar-results{flex:1 1 auto;min-height:0;overflow-y:auto}
   .recommendation-panel{max-height:70vh}
   .recommendation-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .recommendation-grid-empty{grid-template-columns:1fr}
   .recommendation-card-basic{aspect-ratio:1/1.1}
   .servant-card-top{grid-template-columns:3.75rem minmax(0,1fr)}
   .servant-card-thumb{width:3.75rem;height:3.75rem}
@@ -167,5 +170,6 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
   .sidebar-thumb,.recommendation-thumb{width:3.75rem;height:3.75rem}
   .servant-card-details div{grid-template-columns:4.8rem minmax(0,1fr)}
   .recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .recommendation-grid-empty{grid-template-columns:1fr}
   .recommendation-card-basic{aspect-ratio:1/1}
 }
