@@ -63,10 +63,16 @@ function renderServantSidebar() {
   const emptySlotIndex = getNextEmptyServantSlotIndex();
   dom.servantSlotLabel.textContent = emptySlotIndex === -1 ? "No Empty Slots" : `Next Empty Slot ${emptySlotIndex + 1}`;
 
-  const visibleServants = isLoading ? [] : getVisibleServantsForSidebar(-1), totalServants = visibleServants.length, pageSize = Math.max(1, Number(state.servantSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]), totalPages = Math.max(1, Math.ceil(totalServants / pageSize)), currentPage = Math.min(Math.max(1, state.servantSidebarPage), totalPages);
+  const visibleServants = isLoading ? [] : getVisibleServantsForSidebar(-1);
+  const totalServants = visibleServants.length;
+  const pageSize = Math.max(1, Number(state.servantSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]);
+  const totalPages = Math.max(1, Math.ceil(totalServants / pageSize));
+  const currentPage = Math.min(Math.max(1, state.servantSidebarPage), totalPages);
   state.servantSidebarPage = currentPage;
 
-  const pageStart = totalServants ? (currentPage - 1) * pageSize : 0, pagedServants = visibleServants.slice(pageStart, pageStart + pageSize);
+  const pageStart = totalServants ? (currentPage - 1) * pageSize : 0;
+  const pagedServants = visibleServants.slice(pageStart, pageStart + pageSize);
+
   dom.servantPageSize.value = String(pageSize);
   dom.servantPageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
   dom.servantPagePrev.disabled = isLoading || currentPage <= 1;
@@ -106,20 +112,43 @@ function renderCESidebar() {
   const slotIndex = state.activeCESlot;
   dom.ceSlotLabel.textContent = slotIndex !== null ? `CE Slot ${slotIndex + 1}` : "Any Slot";
 
-  if (isLoading) { dom.ceFilterSummary.textContent = "Loading Craft Essences..."; dom.ceResults.innerHTML = sidebarLoadingMarkup("Loading Craft Essences", state.ceSidebarLoadingProgress); if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1"; if (dom.cePagePrev) dom.cePagePrev.disabled = true; if (dom.cePageNext) dom.cePageNext.disabled = true; return; }
-  if (!state.ces.length) { dom.ceFilterSummary.textContent = "No Craft Essences available."; dom.ceResults.innerHTML = `<div class="empty-state">No Craft Essences are currently available from Atlas Academy.</div>`; if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1"; if (dom.cePagePrev) dom.cePagePrev.disabled = true; if (dom.cePageNext) dom.cePageNext.disabled = true; return; }
+  if (isLoading) {
+    dom.ceFilterSummary.textContent = "Loading Craft Essences...";
+    dom.ceResults.innerHTML = sidebarLoadingMarkup("Loading Craft Essences", state.ceSidebarLoadingProgress);
+    if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1";
+    if (dom.cePagePrev) dom.cePagePrev.disabled = true;
+    if (dom.cePageNext) dom.cePageNext.disabled = true;
+    return;
+  }
 
-  const search = normalizeText(state.ceSearch), visibleCEs = state.ces.filter((ce) => !search || ce.normalizedName.includes(search)), totalCEs = visibleCEs.length, pageSize = Math.max(1, Number(state.ceSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]), totalPages = Math.max(1, Math.ceil(totalCEs / pageSize)), currentPage = Math.min(Math.max(1, state.ceSidebarPage), totalPages);
+  if (!state.ces.length) {
+    dom.ceFilterSummary.textContent = "No Craft Essences available.";
+    dom.ceResults.innerHTML = `<div class="empty-state">No Craft Essences are currently available from Atlas Academy.</div>`;
+    if (dom.cePageLabel) dom.cePageLabel.textContent = "Page 1 of 1";
+    if (dom.cePagePrev) dom.cePagePrev.disabled = true;
+    if (dom.cePageNext) dom.cePageNext.disabled = true;
+    return;
+  }
+
+  const search = normalizeText(state.ceSearch);
+  const visibleCEs = state.ces.filter((ce) => !search || ce.normalizedName.includes(search));
+  const totalCEs = visibleCEs.length;
+  const pageSize = Math.max(1, Number(state.ceSidebarPageSize) || SIDEBAR_PAGE_SIZE_OPTIONS[0]);
+  const totalPages = Math.max(1, Math.ceil(totalCEs / pageSize));
+  const currentPage = Math.min(Math.max(1, state.ceSidebarPage), totalPages);
   state.ceSidebarPage = currentPage;
 
-  const pageStart = totalCEs ? (currentPage - 1) * pageSize : 0, pagedCEs = visibleCEs.slice(pageStart, pageStart + pageSize);
+  const pageStart = totalCEs ? (currentPage - 1) * pageSize : 0;
+  const pagedCEs = visibleCEs.slice(pageStart, pageStart + pageSize);
+
   if (dom.cePageSize) dom.cePageSize.value = String(pageSize);
   if (dom.cePageLabel) dom.cePageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
   if (dom.cePagePrev) dom.cePagePrev.disabled = currentPage <= 1;
   if (dom.cePageNext) dom.cePageNext.disabled = currentPage >= totalPages;
-  dom.ceFilterSummary.textContent = `Showing ${pagedCEs.length} of ${totalCEs} Craft Essences.`;
 
+  dom.ceFilterSummary.textContent = `Showing ${pagedCEs.length} of ${totalCEs} Craft Essences.`;
   dom.ceResults.innerHTML = pagedCEs.length ? pagedCEs.map((ce) => ceCardMarkup(ce)).join("") : `<div class="empty-state">No Craft Essences match the current search.</div>`;
+
   dom.ceResults.querySelectorAll("[data-add-ce]").forEach((button) => {
     button.addEventListener("click", () => {
       const ceId = Number(button.dataset.addCe), ce = state.ces.find((entry) => entry.id === ceId);
