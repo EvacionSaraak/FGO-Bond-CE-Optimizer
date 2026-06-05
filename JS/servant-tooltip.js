@@ -1,127 +1,106 @@
-(function () {
-  let tooltipEl = null;
+function initServantTooltip(){
+  if(window.__servantTooltipInitialized)return;
+  window.__servantTooltipInitialized=true;
+  let tooltip=document.getElementById("servant-tooltip");
+  if(!tooltip){tooltip=document.createElement("div");tooltip.id="servant-tooltip";tooltip.className="servant-tooltip";document.body.appendChild(tooltip);}
 
-  function createTooltipElement() {
-    tooltipEl = document.createElement("div");
-    tooltipEl.id = "servant-tooltip";
-    tooltipEl.className = "servant-tooltip";
-    tooltipEl.setAttribute("aria-hidden", "true");
-    document.body.appendChild(tooltipEl);
-  }
-
-  function buildTooltipHTML(servant) {
-    const alignmentText =
-      servant.alignment && servant.alignment.length
-        ? servant.alignment.map(toTitleCase).join(" ")
-        : "Unknown";
-
-    const traitsText =
-      servant.traits && servant.traits.length
-        ? servant.traits.map(toTitleCase).filter(Boolean).join(", ")
-        : "None";
-
-    return `
+  const renderTooltip=(servant)=>{
+    const alignment=Array.isArray(servant.alignment)&&servant.alignment.length?servant.alignment.map(toTitleCase).join(", "):"Unknown";
+    const traits=Array.isArray(servant.traits)&&servant.traits.length?servant.traits.slice(0,28).map(toTitleCase).join(", "):"None";
+    tooltip.innerHTML=`
       <div class="servant-tooltip-name">${escapeHtml(servant.name)}</div>
-      <div class="servant-tooltip-row">
-        <span class="servant-tooltip-label">Class</span>
-        <span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.className))}</span>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Class</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.className))}</span></div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Gender</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.gender||"unknown"))}</span></div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Attribute</span><span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.attribute||"unknown"))}</span></div>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Alignment</span><span class="servant-tooltip-value">${escapeHtml(alignment)}</span></div>
+      <div class="servant-tooltip-traits"><span class="servant-tooltip-label">Traits</span><span class="servant-tooltip-value">${escapeHtml(traits)}</span></div>
+    `;
+  };
+
+  const moveTooltip=(event)=>{
+    if(!tooltip.classList.contains("visible"))return;
+    const margin=16,rect=tooltip.getBoundingClientRect();
+    let left=event.clientX+margin,top=event.clientY+margin;
+    if(left+rect.width>window.innerWidth-margin)left=event.clientX-rect.width-margin;
+    if(top+rect.height>window.innerHeight-margin)top=event.clientY-rect.height-margin;
+    tooltip.style.left=`${Math.max(margin,left)}px`;
+    tooltip.style.top=`${Math.max(margin,top)}px`;
+  };
+
+  document.addEventListener("mouseover",(event)=>{
+    const trigger=event.target.closest("[data-servant-id],[data-servant-tooltip-id]");
+    if(!trigger)return;
+    const servantId=Number(trigger.dataset.servantId||trigger.dataset.servantTooltipId);
+    const servant=state.servants.find((entry)=>entry.id===servantId)||state.selectedServants.find((entry)=>entry?.id===servantId);
+    if(!servant)return;
+    renderTooltip(servant);
+    tooltip.classList.add("visible");
+    moveTooltip(event);
+  });
+
+  document.addEventListener("mousemove",moveTooltip);
+  document.addEventListener("mouseout",(event)=>{if(event.target.closest("[data-servant-id],[data-servant-tooltip-id]"))tooltip.classList.remove("visible");});
+}
+
+function initCETooltip(){
+  if(window.__ceTooltipInitialized)return;
+  window.__ceTooltipInitialized=true;
+  let tooltip=document.getElementById("ce-tooltip");
+  if(!tooltip){tooltip=document.createElement("div");tooltip.id="ce-tooltip";tooltip.className="servant-tooltip ce-tooltip";document.body.appendChild(tooltip);}
+
+  const findCE=(id)=>state.recommendations.find((entry)=>entry.id===id)||state.ces.find((entry)=>entry.id===id)||state.selectedCEs.find((entry)=>entry?.id===id);
+
+  const renderTooltip=(ce)=>{
+    const tag=getCEEffectTag(ce),total=formatPercent(Number(ce.totalBonus)||0),affected=ce.affectedServants||[];
+    const affectedHtml=affected.length?affected.map(({servant,slotIndex,bonus})=>`
+      <div class="ce-tooltip-affected-row">
+        <span>Slot ${slotIndex+1}</span>
+        <strong>${escapeHtml(servant.name)}</strong>
+        <b>+${formatPercent(bonus)}%</b>
       </div>
-      <div class="servant-tooltip-row">
-        <span class="servant-tooltip-label">Gender</span>
-        <span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.gender))}</span>
+    `).join(""):`<div class="ce-tooltip-muted">Affects no selected servants.</div>`;
+
+    tooltip.innerHTML=`
+      <div class="ce-tooltip-head">
+        <img src="${escapeHtml(ce.image)}" data-fallback-src="${escapeHtml(ce.fallbackImage)}" alt="${escapeHtml(ce.name)}">
+        <div>
+          <div class="servant-tooltip-name">${escapeHtml(ce.name)}</div>
+          <div class="ce-tooltip-tag">${escapeHtml(tag)}</div>
+        </div>
       </div>
-      <div class="servant-tooltip-row">
-        <span class="servant-tooltip-label">Attribute</span>
-        <span class="servant-tooltip-value">${escapeHtml(toTitleCase(servant.attribute))}</span>
+      <div class="servant-tooltip-row"><span class="servant-tooltip-label">Total</span><span class="servant-tooltip-value">+${total}% hypothetical</span></div>
+      <div class="ce-tooltip-section">
+        <div class="servant-tooltip-label">Affected</div>
+        <div class="ce-tooltip-affected">${affectedHtml}</div>
       </div>
-      <div class="servant-tooltip-row">
-        <span class="servant-tooltip-label">Alignment</span>
-        <span class="servant-tooltip-value">${escapeHtml(alignmentText)}</span>
-      </div>
-      <div class="servant-tooltip-traits">
-        <span class="servant-tooltip-label">Traits</span>
-        <span class="servant-tooltip-value">${escapeHtml(traitsText)}</span>
+      <div class="ce-tooltip-section">
+        <div class="servant-tooltip-label">Detail</div>
+        <div class="ce-tooltip-detail">${escapeHtml(ce.detail||"No detail text.")}</div>
       </div>
     `;
-  }
+    bindImageFallbacks(tooltip);
+  };
 
-  function positionTooltip(clientX, clientY) {
-    const offsetX = 18;
-    const offsetY = 14;
-    const margin = 10;
-    const tooltipWidth = tooltipEl.offsetWidth || 240;
-    const tooltipHeight = tooltipEl.offsetHeight || 160;
+  const moveTooltip=(event)=>{
+    if(!tooltip.classList.contains("visible"))return;
+    const margin=16,rect=tooltip.getBoundingClientRect();
+    let left=event.clientX+margin,top=event.clientY+margin;
+    if(left+rect.width>window.innerWidth-margin)left=event.clientX-rect.width-margin;
+    if(top+rect.height>window.innerHeight-margin)top=event.clientY-rect.height-margin;
+    tooltip.style.left=`${Math.max(margin,left)}px`;
+    tooltip.style.top=`${Math.max(margin,top)}px`;
+  };
 
-    let left = clientX + offsetX;
-    let top = clientY + offsetY;
+  document.addEventListener("mouseover",(event)=>{
+    const trigger=event.target.closest("[data-ce-tooltip-id]");
+    if(!trigger)return;
+    const ce=findCE(Number(trigger.dataset.ceTooltipId));
+    if(!ce)return;
+    renderTooltip(ce);
+    tooltip.classList.add("visible");
+    moveTooltip(event);
+  });
 
-    if (left + tooltipWidth > window.innerWidth - margin) {
-      left = clientX - tooltipWidth - offsetX;
-    }
-    if (top + tooltipHeight > window.innerHeight - margin) {
-      top = clientY - tooltipHeight - offsetY;
-    }
-
-    tooltipEl.style.left = `${Math.max(margin, left)}px`;
-    tooltipEl.style.top = `${Math.max(margin, top)}px`;
-  }
-
-  function showTooltip(servant, clientX, clientY) {
-    tooltipEl.innerHTML = buildTooltipHTML(servant);
-    tooltipEl.classList.add("visible");
-    positionTooltip(clientX, clientY);
-  }
-
-  function hideTooltip() {
-    tooltipEl.classList.remove("visible");
-  }
-
-  function getServantIdFromTarget(target) {
-    const el = target ? target.closest("[data-servant-id]") : null;
-    return el ? el.dataset.servantId : null;
-  }
-
-  function findServantById(id) {
-    return state.servants.find((s) => s.id === Number(id)) || null;
-  }
-
-  function initServantTooltip() {
-    createTooltipElement();
-
-    document.addEventListener("mouseover", (event) => {
-      const servantId = getServantIdFromTarget(event.target);
-      if (!servantId) {
-        return;
-      }
-      const servant = findServantById(servantId);
-      if (servant) {
-        showTooltip(servant, event.clientX, event.clientY);
-      }
-    });
-
-    document.addEventListener("mousemove", (event) => {
-      if (!tooltipEl.classList.contains("visible")) {
-        return;
-      }
-      const servantId = getServantIdFromTarget(event.target);
-      if (servantId) {
-        positionTooltip(event.clientX, event.clientY);
-      } else {
-        hideTooltip();
-      }
-    });
-
-    document.addEventListener("mouseout", (event) => {
-      const fromServantId = getServantIdFromTarget(event.target);
-      if (!fromServantId) {
-        return;
-      }
-      const toServantId = getServantIdFromTarget(event.relatedTarget);
-      if (toServantId !== fromServantId) {
-        hideTooltip();
-      }
-    });
-  }
-
-  window.initServantTooltip = initServantTooltip;
-})();
+  document.addEventListener("mousemove",moveTooltip);
+  document.addEventListener("mouseout",(event)=>{if(event.target.closest("[data-ce-tooltip-id]"))tooltip.classList.remove("visible");});
+}
