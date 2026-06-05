@@ -66,31 +66,47 @@ function extractBondPercent(detail) {
 // Fallback for when skill detail uses {0}% placeholders instead of real values.
 // Reads from the functions/svals structure of the skill array directly.
 function extractBondPercentFromFunctions(skills) {
-  if (!Array.isArray(skills)) {
-    return 0;
-  }
+  if (!Array.isArray(skills)) { return 0; }
+
   let maxPercent = 0;
+
+  const isBondGainFunction = (func) => {
+    const type = normalizeText(func?.funcType || "");
+    return (
+      type === "bondgain" ||
+      type === "servantfriendshipup" ||
+      type.includes("friendship")
+    );
+  };
+
   for (const skill of skills) {
     const functions = Array.isArray(skill.functions) ? skill.functions : [];
+
     for (const func of functions) {
-      if (func.funcType !== "bondGain") {
-        continue;
-      }
+      if (!isBondGainFunction(func)) { continue; }
+
       const svals = Array.isArray(func.svals) ? func.svals : [];
+
       for (const sval of svals) {
-        const raw = Number(sval?.Value ?? 0);
-        if (!raw) {
-          continue;
-        }
-        // Atlas Academy may store values as direct percent (10 = 10%) or in the game's
-        // internal permille scale (1000 = 10%, i.e. divide by 100 to get percent).
+        const raw =
+          Number(
+            sval?.Value ??
+            sval?.value ??
+            sval?.Rate ??
+            sval?.rate ??
+            sval?.Turn ??
+            0
+          );
+
+        if (!raw) { continue; }
+
         const percent = raw > 100 ? raw / 100 : raw;
-        if (percent > maxPercent) {
-          maxPercent = percent;
-        }
+
+        if (percent > maxPercent) { maxPercent = percent; }
       }
     }
   }
+
   return maxPercent;
 }
 
@@ -102,16 +118,7 @@ function isBondBoostCE(detail) {
 }
 
 function isServantPersonalBondCE(detail, rawCE = null) {
-  // Atlas Academy marks true Bond Lv10 personal CEs with a positive owner.
-  // This should be the primary check.
-  if (Number(rawCE?.bondEquipOwner ?? 0) > 0) {
-    return true;
-  }
-
-  // Do not guess personal Bond CE status from vague text.
-  // Generic Bond Growth CEs often say only:
-  // "Increases Bond Points gained by X%."
-  // Treat unknown-owner CEs as non-personal so they are not wrongly filtered out.
+  if (Number(rawCE?.bondEquipOwner ?? 0) > 0) { return true; }
   return false;
 }
 
@@ -119,8 +126,7 @@ function extractBondPercents(detail, ceName = "") {
   const values = [...String(detail || "").matchAll(/(\d+)\s*[%％]/g)].map((match) => Number(match[1]));
   const mlbPercent = values.length ? Math.max(...values) : 0;
   const lowered = String(detail || "").toLowerCase();
-  const isSupportConditional =
-    /\bsupport\b|サポート/.test(lowered) || normalizeText(ceName) === "chaldea teatime";
+  const isSupportConditional = /\bsupport\b|サポート/.test(lowered) || normalizeText(ceName) === "chaldea teatime";
   const ownPercent = isSupportConditional && values.length > 1 ? Math.min(...values) : mlbPercent;
   return {
     mlbPercent,
