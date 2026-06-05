@@ -8,24 +8,10 @@
   <link href="CSS/styles.css" rel="stylesheet">
 </head>
 <body>
-  <main class="container-fluid py-4">
-    <header class="app-header mb-4">
-      <div>
-        <h1 class="h3 mb-1">FGO Bond CE Optimizer</h1>
-        <p class="text-muted mb-0">Build a six-servant lineup, assign bond-boosting Craft Essences, and explore the best bond-focused matches from Atlas Academy data.</p>
-      </div>
-      <div class="d-flex flex-wrap gap-2">
-        <button id="optimize-ces-btn" type="button" class="btn btn-primary">Optimize CEs</button>
-        <button id="optimize-servants-btn" type="button" class="btn btn-outline-light">Optimize Servants</button>
-        <button id="clear-all-btn" type="button" class="btn btn-outline-danger">Clear all</button>
-      </div>
-    </header>
-
-    <div id="loading-status" class="alert alert-secondary py-2 small">Loading Atlas Academy data (local fallback enabled)...</div>
-
-    <div class="row g-3">
+  <main class="container-fluid py-3">
+    <div class="row g-3 app-grid">
       <aside class="col-12 col-xl-3 order-2 order-xl-1">
-        <section id="servant-sidebar" class="sidebar-panel d-none mb-3">
+        <section id="servant-sidebar" class="sidebar-panel d-none">
           <h2 class="h5 mb-2">Servants</h2>
           <p class="text-muted small mb-3">Servants are always added to the next empty slot.</p>
 
@@ -57,12 +43,26 @@
       </aside>
 
       <section class="col-12 col-xl-6 order-1 order-xl-2 middle-stack">
+        <header class="app-header compact-app-header">
+          <div>
+            <h1 class="h4 mb-1">FGO Bond CE Optimizer</h1>
+            <p class="text-muted small mb-0">Build a six-servant lineup and rank bond CE matches.</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2 compact-header-actions">
+            <button id="optimize-ces-btn" type="button" class="btn btn-sm btn-primary">Optimize CEs</button>
+            <button id="optimize-servants-btn" type="button" class="btn btn-sm btn-outline-light">Optimize Servants</button>
+            <button id="clear-all-btn" type="button" class="btn btn-sm btn-outline-danger">Clear all</button>
+          </div>
+        </header>
+
+        <div id="loading-status" class="alert alert-secondary py-2 small compact-status">Loading Atlas Academy data (local fallback enabled)...</div>
+
         <section class="panel-section lineup-panel">
           <div class="lineup-row">
             <div class="lineup-row-header">
               <div>
                 <h2 class="h5 mb-1">Servant lineup</h2>
-                <p class="text-muted small mb-0">Add servants from the left sidebar. Use Max Bond to exclude a servant from CE optimization.</p>
+                <p class="text-muted small mb-0">Use Max Bond to exclude a servant from CE optimization.</p>
               </div>
             </div>
             <div id="servant-slots" class="slot-grid compact-slot-grid"></div>
@@ -72,7 +72,7 @@
             <div class="lineup-row-header">
               <div>
                 <h2 class="h5 mb-1">Craft Essences</h2>
-                <p class="text-muted small mb-0">Click a CE slot to choose where the next Craft Essence should be placed.</p>
+                <p class="text-muted small mb-0">Click a CE slot to choose where the next CE should be placed.</p>
               </div>
             </div>
             <div id="ce-slots" class="slot-grid compact-slot-grid"></div>
@@ -83,7 +83,7 @@
           <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
             <div>
               <h2 class="h5 mb-1">Optimizer output</h2>
-              <p class="text-muted small mb-0">Recommendations show the hypothetical total bond bonus provided to affected, non-max-bond servants.</p>
+              <p class="text-muted small mb-0">Recommendations show total bond bonus to affected, non-max-bond servants.</p>
             </div>
             <button id="add-all-recommended-ces-btn" type="button" class="btn btn-sm btn-success" disabled>Add all 6 recommended CEs</button>
           </div>
