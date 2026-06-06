@@ -177,3 +177,47 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 .cost-cap-control input{width:5.5rem;background:#111927;border:1px solid var(--border-strong);color:var(--text);border-radius:.55rem;padding:.25rem .45rem;font-size:.8rem;font-weight:800}
 .cost-cap-control input::placeholder{color:var(--muted-2)}
 .cost-cap-control input:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 .18rem rgba(102,183,255,.18)}
+.ce-slot-basic,
+.sidebar-card[data-add-ce],
+.recommendation-card-basic{
+  transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease,filter .15s ease;
+}
+
+.selection-slot:has(.ce-slot-basic):hover,
+.selection-slot:has(.ce-slot-basic).active-slot{
+  border-color:rgba(102,183,255,1);
+  box-shadow:
+    0 0 0 .22rem rgba(102,183,255,.32),
+    0 0 1.2rem rgba(102,183,255,.35),
+    0 0 2rem rgba(102,183,255,.2);
+}
+
+.selection-slot:has(.ce-slot-basic):hover .ce-basic-image,
+.selection-slot:has(.ce-slot-basic).active-slot .ce-basic-image{
+  filter:brightness(1.12) saturate(1.12);
+}
+
+.sidebar-card[data-add-ce]:hover,
+.sidebar-card[data-add-ce]:focus-visible{
+  border-color:rgba(102,183,255,1);
+  box-shadow:
+    0 0 0 .2rem rgba(102,183,255,.3),
+    0 0 1.15rem rgba(102,183,255,.34),
+    0 0 2rem rgba(102,183,255,.18);
+  transform:translateY(-2px);
+}
+
+.recommendation-card-basic:hover,
+.recommendation-card-basic:focus-within{
+  border-color:rgba(102,183,255,1);
+  box-shadow:
+    0 0 0 .24rem rgba(102,183,255,.36),
+    0 0 1.4rem rgba(102,183,255,.42),
+    0 0 2.4rem rgba(102,183,255,.24);
+  transform:translateY(-3px);
+}
+
+.recommendation-card-basic:hover .recommendation-basic-image,
+.recommendation-card-basic:focus-within .recommendation-basic-image{
+  filter:brightness(1.14) saturate(1.14);
+}
