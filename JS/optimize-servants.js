@@ -17,9 +17,9 @@ function doesServantMatchOptimizationCE(servant,ce){
 }
 
 function doesServantMatchAllSelectedCEs(servant){
-  const selectedCEs=getSelectedCEsForServantOptimization();
-  if(!selectedCEs.length)return true;
-  return selectedCEs.every((ce)=>doesServantMatchOptimizationCE(servant,ce));
+  const restrictedCEs=getSelectedCEsForServantOptimization().filter(ceHasServantRestriction);
+  if(!restrictedCEs.length)return true;
+  return restrictedCEs.every((ce)=>doesServantMatchOptimizationCE(servant,ce));
 }
 
 function getServantOptimizationRequirements(){
@@ -47,8 +47,8 @@ function getVisibleServantsForSidebar(_slotIndex=null){
 }
 
 function getServantOptimizationScore(servant){
-  const selectedCEs=getSelectedCEsForServantOptimization();
-  return selectedCEs.reduce((sum,ce)=>sum+(doesServantMatchOptimizationCE(servant,ce)?getOptimizedCEBondPercent(ce):0),0);
+  const restrictedCEs=getSelectedCEsForServantOptimization().filter(ceHasServantRestriction);
+  return restrictedCEs.reduce((sum,ce)=>sum+(doesServantMatchOptimizationCE(servant,ce)?getOptimizedCEBondPercent(ce):0),0);
 }
 
 function handleOptimizeServants(){
