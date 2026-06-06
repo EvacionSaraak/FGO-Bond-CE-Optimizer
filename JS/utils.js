@@ -79,7 +79,13 @@ const JP_CE_CONDITION_ALIASES={
   "プリテンダー":{label:"Pretender",aliases:["pretender"]}
 };
 
-function normalizeJapaneseConditionText(value){return String(value||"").replace(/[「」『』【】\[\]\(\)（）]/g,"").replace(/\s+/g,"").trim();}
+function normalizeJapaneseConditionText(value){
+  return String(value||"")
+    .replace(/[（(][^）)]*[）)]/g,"")
+    .replace(/[「」『』【】\[\]\(\)（）]/g,"")
+    .replace(/\s+/g,"")
+    .trim();
+}
 function japaneseConditionAliasMatches(jp,rawAlternative){const alternative=normalizeJapaneseConditionText(rawAlternative),alias=normalizeJapaneseConditionText(jp);if(!alternative||!alias)return false;if(alternative===alias)return true;if(alternative.includes(`〔${jp}〕`))return true;if(alias.length<=1)return alternative===alias||alternative===`${alias}属性`||alternative===`${alias}特性`;return alternative.includes(alias);}
 function getJapaneseBondConditionGroups(detail){
   const text=String(detail||""),groups=[],sortedAliases=Object.entries(JP_CE_CONDITION_ALIASES).sort((a,b)=>b[0].length-a[0].length);
