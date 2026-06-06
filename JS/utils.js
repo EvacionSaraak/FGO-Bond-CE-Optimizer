@@ -44,15 +44,55 @@ const JP_CE_CONDITION_ALIASES={
   "デミサーヴァント":{label:"Demi-Servant",aliases:["demi-servant","demi servant","demi servants"]},
   "今を生きる人類":{label:"Living Human",aliases:["living human","living humans","living humanity","humans living in the present"]},
   "今を生きる人間":{label:"Living Human",aliases:["living human","living humans","living humanity","humans living in the present"]},
-  "秩序":{label:"Lawful",aliases:["lawful"]},"混沌":{label:"Chaotic",aliases:["chaotic"]},"中立":{label:"Neutral",aliases:["neutral"]},"善":{label:"Good",aliases:["good"]},
-  "悪":{label:"Evil",aliases:["evil","evil alignment"]},"悪属性":{label:"Evil",aliases:["evil","evil alignment"]},"悪特性":{label:"Evil",aliases:["evil","evil alignment"]},
-  "中庸":{label:"Balanced",aliases:["balanced"]},"狂":{label:"Madness",aliases:["madness"]},"夏":{label:"Summer",aliases:["summer"]},"男性":{label:"Male",aliases:["male"]},"女性":{label:"Female",aliases:["female"]},"性別不明":{label:"Unknown",aliases:["unknown"]},
-  "天":{label:"Sky",aliases:["sky","sky attribute"]},"天属性":{label:"Sky",aliases:["sky","sky attribute"]},"地":{label:"Earth",aliases:["earth","earth attribute"]},"地属性":{label:"Earth",aliases:["earth","earth attribute"]},
-  "人":{label:"Man",aliases:["man","man attribute"]},"人属性":{label:"Man",aliases:["man","man attribute"]},"星":{label:"Star",aliases:["star","star attribute"]},"星属性":{label:"Star",aliases:["star","star attribute"]},"獣":{label:"Beast",aliases:["beast","beast attribute"]},"獣属性":{label:"Beast",aliases:["beast","beast attribute"]},
+
+  "秩序":{label:"Lawful",aliases:["lawful"]},
+  "混沌":{label:"Chaotic",aliases:["chaotic"]},
+  "中立":{label:"Neutral",aliases:["neutral"]},
+  "善":{label:"Good",aliases:["good"]},
+  "悪":{label:"Evil",aliases:["evil","evil alignment"]},
+  "悪属性":{label:"Evil",aliases:["evil","evil alignment"]},
+  "悪特性":{label:"Evil",aliases:["evil","evil alignment"]},
+  "中庸":{label:"Balanced",aliases:["balanced"]},
+  "狂":{label:"Madness",aliases:["madness"]},
+  "夏":{label:"Summer",aliases:["summer"]},
+
+  "男性":{label:"Male",aliases:["male"]},
+  "女性":{label:"Female",aliases:["female"]},
+  "性別不明":{label:"Unknown",aliases:["unknown"]},
+
+  "天":{label:"Sky",aliases:["sky","sky attribute"]},
+  "天属性":{label:"Sky",aliases:["sky","sky attribute"]},
+  "地":{label:"Earth",aliases:["earth","earth attribute"]},
+  "地属性":{label:"Earth",aliases:["earth","earth attribute"]},
+  "人":{label:"Man",aliases:["man","man attribute"]},
+  "人属性":{label:"Man",aliases:["man","man attribute"]},
+
+  "星の力を持つ者":{label:"Star",aliases:["star","star attribute","star trait","has star attribute","one with star power"]},
+  "星の力を持つ":{label:"Star",aliases:["star","star attribute","star trait","has star attribute","one with star power"]},
+  "星":{label:"Star",aliases:["star","star attribute"]},
+  "星属性":{label:"Star",aliases:["star","star attribute"]},
+
+  "獣":{label:"Beast",aliases:["beast","beast attribute"]},
+  "獣属性":{label:"Beast",aliases:["beast","beast attribute"]},
+
   "七騎士":{label:"Seven Knights",aliases:["seven knights","standard class","standard classes"],classes:["saber","archer","lancer","rider","caster","assassin","berserker"]},
   "ケモノ科":{label:"Animal Characteristic",aliases:["animal characteristic","animal characteristics","animal characteristics servant","animal trait","kemono"]},
-  "衣装持ち":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},"霊衣":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
-  "セイバー":{label:"Saber",aliases:["saber"]},"アーチャー":{label:"Archer",aliases:["archer"]},"ランサー":{label:"Lancer",aliases:["lancer"]},"ライダー":{label:"Rider",aliases:["rider"]},"キャスター":{label:"Caster",aliases:["caster"]},"アサシン":{label:"Assassin",aliases:["assassin"]},"バーサーカー":{label:"Berserker",aliases:["berserker"]},"ルーラー":{label:"Ruler",aliases:["ruler"]},"アヴェンジャー":{label:"Avenger",aliases:["avenger"]},"ムーンキャンサー":{label:"Moon Cancer",aliases:["moon cancer","mooncancer"]},"アルターエゴ":{label:"Alter Ego",aliases:["alter ego","alterego"]},"フォーリナー":{label:"Foreigner",aliases:["foreigner"]},"プリテンダー":{label:"Pretender",aliases:["pretender"]}
+  "衣装持ち":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
+  "霊衣":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
+
+  "セイバー":{label:"Saber",aliases:["saber"]},
+  "アーチャー":{label:"Archer",aliases:["archer"]},
+  "ランサー":{label:"Lancer",aliases:["lancer"]},
+  "ライダー":{label:"Rider",aliases:["rider"]},
+  "キャスター":{label:"Caster",aliases:["caster"]},
+  "アサシン":{label:"Assassin",aliases:["assassin"]},
+  "バーサーカー":{label:"Berserker",aliases:["berserker"]},
+  "ルーラー":{label:"Ruler",aliases:["ruler"]},
+  "アヴェンジャー":{label:"Avenger",aliases:["avenger"]},
+  "ムーンキャンサー":{label:"Moon Cancer",aliases:["moon cancer","mooncancer"]},
+  "アルターエゴ":{label:"Alter Ego",aliases:["alter ego","alterego"]},
+  "フォーリナー":{label:"Foreigner",aliases:["foreigner"]},
+  "プリテンダー":{label:"Pretender",aliases:["pretender"]}
 };
 
 function normalizeJapaneseConditionText(value){return String(value||"").replace(/[（(][^）)]*[）)]/g,"").replace(/[「」『』【】\[\]\(\)（）]/g,"").replace(/\s+/g,"").trim();}
