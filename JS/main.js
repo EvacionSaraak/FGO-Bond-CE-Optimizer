@@ -29,6 +29,9 @@ function cacheDom(){
   dom.optimizeServantsButton=document.getElementById("optimize-servants-btn");
   dom.clearAllButton=document.getElementById("clear-all-btn");
   dom.addAllRecommendedCEsButton=document.getElementById("add-all-recommended-ces-btn");
+  dom.servantLineupTitle=document.getElementById("servant-lineup-title");
+  dom.ceLineupTitle=document.getElementById("ce-lineup-title");
+  dom.maxTotalCostInput=document.getElementById("max-total-cost-input");
 }
 
 function bindEvents(){
@@ -44,4 +47,5 @@ function bindEvents(){
   dom.optimizeServantsButton.addEventListener("click",handleOptimizeServants);
   dom.clearAllButton.addEventListener("click",handleClearAll);
   dom.addAllRecommendedCEsButton?.addEventListener("click",handleAddAllRecommendedCEs);
+  dom.maxTotalCostInput?.addEventListener("input",()=>{renderCostHeaders();if(Array.isArray(state.recommendations)&&state.recommendations.length)handleOptimizeCEs();});
 }
