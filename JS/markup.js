@@ -1,7 +1,9 @@
-function servantSlotMarkup(servant,index,totalBonus){const isMaxBond=Boolean(state.selectedServantBond15[index]),isHidden=Boolean(state.selectedServantBondHidden[index]);return `
-  <div class="slot-filled servant-slot-basic ${isMaxBond?"slot-max-bond":""}" data-servant-id="${servant.id}" title="${escapeHtml(servant.name)} | ${escapeHtml(toTitleCase(servant.className))} | Current bond buff: +${formatPercent(totalBonus)}%">
+function servantSlotMarkup(servant,index,totalBonus){
+  const isMaxBond=Boolean(state.selectedServantBond15[index]),isHidden=Boolean(state.selectedServantBondHidden[index]);
+  return `
+  <div class="slot-filled servant-slot-basic ${isMaxBond?"slot-max-bond":""}" data-servant-id="${servant.id}" title="${escapeHtml(servant.name)} | ${escapeHtml(toTitleCase(servant.className))}${isMaxBond?" | Max Bond: excluded from CE optimization":` | Current bond buff: +${formatPercent(totalBonus)}%`}">
     <img class="slot-image servant-basic-image" src="${escapeHtml(servant.image)}" data-fallback-src="${escapeHtml(servant.fallbackImage)}" alt="${escapeHtml(servant.name)}">
-    <button type="button" class="servant-bond-toggle ${isHidden?"is-hidden":""}" data-servant-bond-display-toggle="${index}" title="${isHidden?"Show bond buff":"Hide bond buff"}">+${formatPercent(totalBonus)}%</button>
+    ${isMaxBond?"":`<button type="button" class="servant-bond-toggle ${isHidden?"is-hidden":""}" data-servant-bond-display-toggle="${index}" title="${isHidden?"Show bond buff":"Hide bond buff"}">+${formatPercent(totalBonus)}%</button>`}
     <div class="servant-basic-overlay">
       <button type="button" class="max-bond-toggle ${isMaxBond?"active":""}" data-servant-bond15-toggle="${index}" aria-pressed="${isMaxBond?"true":"false"}" title="${isMaxBond?"Unmark Max Bond":"Mark Max Bond"}">${isMaxBond?"MAX":"BOND"}</button>
     </div>
