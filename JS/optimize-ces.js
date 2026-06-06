@@ -12,30 +12,15 @@ function buildCERecommendations(){
   const maxPossibleCECost=SLOT_COUNT*12,ceBudget=Number.isFinite(maxTotalCost)?Math.max(0,maxTotalCost-servantCost):maxPossibleCECost;if(ceBudget<=0)return [];
   const assignableSlots=Array.from({length:SLOT_COUNT},(_,index)=>index);
   const candidates=(Array.isArray(state.ces)?state.ces:[]).map(getCECandidateForOptimization).filter((candidate)=>candidate&&candidate.cost<=ceBudget).sort((left,right)=>right.bestScore-left.bestScore||left.cost-right.cost||left.ce.name.localeCompare(right.ce.name));
-  const maxMask=1<<SLOT_COUNT;
-  let dp=Array.from({length:maxMask},()=>Array(ceBudget+1).fill(null));
-  dp[0][0]={score:0,cost:0,items:[]};
-
+  const maxMask=1<<SLOT_COUNT;let dp=Array.from({length:maxMask},()=>Array(ceBudget+1).fill(null));dp[0][0]={score:0,cost:0,items:[]};
   for(const candidate of candidates){
     const next=dp.map((row)=>row.map((entry)=>entry?cloneAssignmentEntry(entry):null));
-    for(let mask=0;mask<maxMask;mask+=1){
-      for(let currentCost=0;currentCost<=ceBudget;currentCost+=1){
-        const base=dp[mask][currentCost];if(!base)continue;
-        for(const slotIndex of assignableSlots){
-          if(mask&(1<<slotIndex))continue;
-          const slotScore=candidate.slotScores[slotIndex];if(slotScore<=0)continue;
-          const newCost=currentCost+candidate.cost;if(newCost>ceBudget)continue;
-          const newMask=mask|(1<<slotIndex),affectedServants=getCEAffectedServantsForAssignedSlot(candidate.ce,slotIndex),item={...candidate.ce,totalBonus:slotScore,assignedSlot:slotIndex,affectedServants},proposed={score:base.score+slotScore,cost:newCost,items:[...base.items,item]};
-          if(isBetterAssignment(proposed,next[newMask][newCost]))next[newMask][newCost]=proposed;
-        }
-      }
-    }
+    for(let mask=0;mask<maxMask;mask+=1){for(let currentCost=0;currentCost<=ceBudget;currentCost+=1){const base=dp[mask][currentCost];if(!base)continue;for(const slotIndex of assignableSlots){if(mask&(1<<slotIndex))continue;const slotScore=candidate.slotScores[slotIndex];if(slotScore<=0)continue;const newCost=currentCost+candidate.cost;if(newCost>ceBudget)continue;const newMask=mask|(1<<slotIndex),affectedServants=getCEAffectedServantsForAssignedSlot(candidate.ce,slotIndex),item={...candidate.ce,totalBonus:slotScore,assignedSlot:slotIndex,affectedServants},proposed={score:base.score+slotScore,cost:newCost,items:[...base.items,item]};if(isBetterAssignment(proposed,next[newMask][newCost]))next[newMask][newCost]=proposed;}}}
     dp=next;
   }
-
   let best=null;for(const row of dp)for(const entry of row)if(entry&&isBetterAssignment(entry,best))best=entry;
   return best?best.items.sort((left,right)=>left.assignedSlot-right.assignedSlot||right.totalBonus-left.totalBonus||left.name.localeCompare(right.name)):[];
 }
 
 function handleOptimizeCEs(){state.recommendations=buildCERecommendations();if(!Array.isArray(state.recommendations))state.recommendations=[];renderRecommendations();}
-function handleAddAllRecommendedCEs(){if(!Array.isArray(state.recommendations)||!state.recommendations.length)return;state.selectedCEs=Array(SLOT_COUNT).fill(null);state.selectedCEOwned=Array(SLOT_COUNT).fill(false);for(const ce of state.recommendations){const slotIndex=Number.isInteger(ce.assignedSlot)?ce.assignedSlot:firstOpenSlot(state.selectedCEs);state.selectedCEs[slotIndex]=ce;state.selectedCEOwned[slotIndex]=isDefaultOwnCE(ce);}state.activeCESlot=null;renderAll();}
+function handleAddAllRecommendedCEs(){if(!Array.isArray(state.recommendations)||!state.recommendations.length)return;state.selectedCEs=Array(SLOT_COUNT).fill(null);state.selectedCEOwned=Array(SLOT_COUNT).fill(false);for(const ce of state.recommendations){const slotIndex=Number.isInteger(ce.assignedSlot)?ce.assignedSlot:firstOpenSlot(state.selectedCEs);state.selectedCEs[slotIndex]=ce;state.selectedCEOwned[slotIndex]=getDefaultCEOwnedState(ce);}state.activeCESlot=null;renderAll();}
