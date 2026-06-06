@@ -60,14 +60,18 @@
         <section class="panel-section lineup-panel" title="Add servants from the left sidebar. Use Max Bond to exclude a servant from CE optimization. Click a CE slot to choose where the next Craft Essence should be placed.">
           <div class="lineup-row" title="Servant lineup. Add servants from the left sidebar. Use Max Bond to exclude a servant from CE optimization.">
             <div class="lineup-row-header">
-              <h2 class="h5 mb-0">Servants</h2>
+              <h2 id="servant-lineup-title" class="h5 mb-0">Servants (Cost: 0)</h2>
+              <label class="cost-cap-control" title="Optional total cost cap for servants plus Craft Essences. Leave blank for no limit.">
+                <span>Max Cost</span>
+                <input id="max-total-cost-input" type="number" min="0" step="1" inputmode="numeric" placeholder="No max">
+              </label>
             </div>
             <div id="servant-slots" class="slot-grid compact-slot-grid"></div>
           </div>
 
           <div class="lineup-row" title="Craft Essences. Click a CE slot to choose where the next Craft Essence should be placed.">
             <div class="lineup-row-header">
-              <h2 class="h5 mb-0">Craft Essences</h2>
+              <h2 id="ce-lineup-title" class="h5 mb-0">Craft Essences (Cost: 0)</h2>
             </div>
             <div id="ce-slots" class="slot-grid compact-slot-grid"></div>
           </div>
