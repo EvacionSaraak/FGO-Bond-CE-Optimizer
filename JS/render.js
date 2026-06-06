@@ -12,6 +12,7 @@ function renderServantSlots(){
 function renderCESlots(){
   dom.ceSlots.innerHTML=state.selectedCEs.map((ce,index)=>{const activeClass=state.activeCESlot===index?"active-slot":"";return `<div class="selection-slot ${activeClass}" data-slot-type="ce" data-slot-index="${index}">${ce?`<button type="button" class="btn-close remove-entry" data-remove-type="ce" data-remove-index="${index}" aria-label="Remove CE"></button>`:""}${ce?ceSlotMarkup(ce,index,state.selectedCEOwned[index]):emptySlotMarkup("Craft Essence",index)}${ce?.supportConditional?`<label class="small mt-2 d-flex gap-2 align-items-center slot-toggle"><input type="checkbox" data-ce-owned-toggle="${index}" ${state.selectedCEOwned[index]?"checked":""}> Own copy</label>`:""}</div>`;}).join("");
   bindSlotEvents(dom.ceSlots);
+  bindCEHoverHighlights(dom.ceSlots,"selected");
   dom.ceSlots.querySelectorAll("[data-ce-owned-toggle]").forEach((checkbox)=>{checkbox.addEventListener("click",(event)=>event.stopPropagation());checkbox.addEventListener("change",(event)=>{const slotIndex=Number(event.currentTarget.dataset.ceOwnedToggle);state.selectedCEOwned[slotIndex]=Boolean(event.currentTarget.checked);renderAll();});});
 }
 
@@ -43,6 +44,7 @@ function renderCESidebar(){
   const search=normalizeText(state.ceSearch),visibleCEs=state.ces.filter((ce)=>!search||ce.normalizedName.includes(search)),totalCEs=visibleCEs.length,pageSize=Math.max(1,Number(state.ceSidebarPageSize)||SIDEBAR_PAGE_SIZE_OPTIONS[0]),totalPages=Math.max(1,Math.ceil(totalCEs/pageSize)),currentPage=Math.min(Math.max(1,state.ceSidebarPage),totalPages);state.ceSidebarPage=currentPage;
   const pageStart=totalCEs?(currentPage-1)*pageSize:0,pagedCEs=visibleCEs.slice(pageStart,pageStart+pageSize);if(dom.cePageSize)dom.cePageSize.value=String(pageSize);if(dom.cePageLabel)dom.cePageLabel.textContent=`Page ${currentPage} of ${totalPages}`;if(dom.cePagePrev)dom.cePagePrev.disabled=currentPage<=1;if(dom.cePageNext)dom.cePageNext.disabled=currentPage>=totalPages;
   dom.ceFilterSummary.textContent=`Showing ${pagedCEs.length} of ${totalCEs} Craft Essences.`;dom.ceResults.innerHTML=pagedCEs.length?pagedCEs.map((ce)=>ceCardMarkup(ce)).join(""):`<div class="empty-state">No Craft Essences match the current search.</div>`;
+  bindCEHoverHighlights(dom.ceResults,"sidebar");
   dom.ceResults.querySelectorAll("[data-add-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=isDefaultOwnCE(ce);renderAll();});});
 }
 
@@ -53,9 +55,41 @@ function renderRecommendations(){
   if(dom.addAllRecommendedCEsButton)dom.addAllRecommendedCEsButton.disabled=recommendations.length===0;
   if(!recommendations.length){dom.recommendationArea.classList.add("recommendation-grid-empty");dom.recommendationArea.innerHTML=`<div class="empty-state">Click Optimize CEs to rank bond-focused Craft Essences.</div>`;return;}
   dom.recommendationArea.classList.remove("recommendation-grid-empty");dom.recommendationArea.innerHTML=recommendations.map((ce,index)=>recommendationMarkup(ce,index)).join("");
-  dom.recommendationArea.querySelectorAll("[data-recommendation-id]").forEach((card)=>{const ceId=Number(card.dataset.recommendationId),ce=recommendations.find((entry)=>entry.id===ceId);if(!ce)return;card.addEventListener("mouseenter",()=>highlightAffectedServants(ce));card.addEventListener("mouseleave",clearHighlightedServants);});
+  bindCEHoverHighlights(dom.recommendationArea,"recommendation");
   dom.recommendationArea.querySelectorAll("[data-add-recommended-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addRecommendedCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=isDefaultOwnCE(ce);renderAll();});});
 }
 
-function highlightAffectedServants(ce){clearHighlightedServants();state.selectedServants.forEach((servant,servantSlotIndex)=>{if(!servant)return;if(doesCEAffectServant(ce,servant,-1,servantSlotIndex,true))dom.servantSlots.querySelector(`.selection-slot[data-slot-index="${servantSlotIndex}"]`)?.classList.add("highlighted-slot");});}
+function bindCEHoverHighlights(container,source){
+  container.querySelectorAll("[data-ce-tooltip-id],[data-recommendation-id]").forEach((card)=>{
+    card.addEventListener("mouseenter",()=>{
+      const ce=getCEFromHoverCard(card,source);
+      if(!ce)return;
+      const assignedSlot=getCEAssignedSlotFromHoverCard(card,ce,source);
+      highlightAffectedServants(ce,assignedSlot,source==="sidebar");
+    });
+    card.addEventListener("mouseleave",clearHighlightedServants);
+  });
+}
+
+function getCEFromHoverCard(card,source){
+  const ceId=Number(card.dataset.recommendationId||card.dataset.ceTooltipId);
+  if(!Number.isFinite(ceId))return null;
+  if(source==="recommendation")return (Array.isArray(state.recommendations)?state.recommendations:[]).find((entry)=>entry.id===ceId)||state.ces.find((entry)=>entry.id===ceId);
+  return state.ces.find((entry)=>entry.id===ceId)||state.selectedCEs.find((entry)=>entry?.id===ceId)||null;
+}
+
+function getCEAssignedSlotFromHoverCard(card,ce,source){
+  if(source==="recommendation"&&Number.isInteger(ce.assignedSlot))return ce.assignedSlot;
+  if(source==="selected")return Number(card.closest("[data-slot-type='ce']")?.dataset.slotIndex??-1);
+  return -1;
+}
+
+function highlightAffectedServants(ce,ceSlotIndex=-1,ignoreExceptSelf=true){
+  clearHighlightedServants();
+  state.selectedServants.forEach((servant,servantSlotIndex)=>{
+    if(!servant||state.selectedServantBond15[servantSlotIndex])return;
+    if(doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex,ignoreExceptSelf))dom.servantSlots.querySelector(`.selection-slot[data-slot-index="${servantSlotIndex}"]`)?.classList.add("highlighted-slot");
+  });
+}
+
 function clearHighlightedServants(){dom.servantSlots.querySelectorAll(".highlighted-slot").forEach((slot)=>slot.classList.remove("highlighted-slot"));}
