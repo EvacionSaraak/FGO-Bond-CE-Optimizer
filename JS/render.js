@@ -29,8 +29,19 @@ function renderServantSidebar(){
   const emptySlotIndex=getNextEmptyServantSlotIndex();dom.servantSlotLabel.textContent=emptySlotIndex===-1?"No Empty Slots":`Next Empty Slot ${emptySlotIndex+1}`;
   const visibleServants=isLoading?[]:getVisibleServantsForSidebar(-1),totalServants=visibleServants.length,pageSize=Math.max(1,Number(state.servantSidebarPageSize)||SIDEBAR_PAGE_SIZE_OPTIONS[0]),totalPages=Math.max(1,Math.ceil(totalServants/pageSize)),currentPage=Math.min(Math.max(1,state.servantSidebarPage),totalPages);state.servantSidebarPage=currentPage;
   const pageStart=totalServants?(currentPage-1)*pageSize:0,pagedServants=visibleServants.slice(pageStart,pageStart+pageSize);dom.servantPageSize.value=String(pageSize);dom.servantPageLabel.textContent=`Page ${currentPage} of ${totalPages}`;dom.servantPagePrev.disabled=isLoading||currentPage<=1;dom.servantPageNext.disabled=isLoading||currentPage>=totalPages;
-  dom.servantFilterSummary.textContent=state.servantOptimizationEnabled?`Showing ${pagedServants.length} of ${totalServants} servants affected by all selected Craft Essences.`:`Showing ${pagedServants.length} of ${totalServants} servants matching the current search.`;
-  if(isLoading){dom.servantFilterSummary.textContent="Loading servants...";dom.servantResults.innerHTML=sidebarLoadingMarkup("Loading servants",state.servantSidebarLoadingProgress);dom.servantPageLabel.textContent="Page 1 of 1";dom.servantPagePrev.disabled=true;dom.servantPageNext.disabled=true;return;}
+  if(dom.clearServantOptimizationButton)dom.clearServantOptimizationButton.classList.toggle("d-none",!state.servantOptimizationEnabled);
+  dom.servantFilterSummary.textContent=state.servantOptimizationEnabled?`Showing ${pagedServants.length} of ${totalServants} servants matching CE limits.`:`Showing ${pagedServants.length} of ${totalServants} servants matching the current search.`;
+
+  if(isLoading){
+    dom.servantFilterSummary.textContent="Loading servants...";
+    if(dom.clearServantOptimizationButton)dom.clearServantOptimizationButton.classList.add("d-none");
+    dom.servantResults.innerHTML=sidebarLoadingMarkup("Loading servants",state.servantSidebarLoadingProgress);
+    dom.servantPageLabel.textContent="Page 1 of 1";
+    dom.servantPagePrev.disabled=true;
+    dom.servantPageNext.disabled=true;
+    return;
+  }
+
   dom.servantResults.innerHTML=pagedServants.length?pagedServants.map((servant)=>servantCardMarkup(servant,emptySlotIndex===-1||!canAddServantToSelection(servant.id,emptySlotIndex))).join(""):`<div class="empty-state">No servants match the current search and CE filters.</div>`;
   dom.servantResults.querySelectorAll("[data-add-servant]").forEach((button)=>{button.addEventListener("click",()=>{const servantId=Number(button.dataset.addServant),servant=state.servants.find((entry)=>entry.id===servantId),targetIndex=getNextEmptyServantSlotIndex();if(!servant||targetIndex===-1)return;if(!canAddServantToSelection(servantId,targetIndex))return;state.selectedServants[targetIndex]=servant;state.selectedServantBond15[targetIndex]=false;state.selectedServantBondHidden[targetIndex]=false;state.activeServantSlot=null;state.servantOptimizationEnabled=false;renderAll();});});
 }
