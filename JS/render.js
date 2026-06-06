@@ -31,17 +31,7 @@ function renderServantSidebar(){
   const pageStart=totalServants?(currentPage-1)*pageSize:0,pagedServants=visibleServants.slice(pageStart,pageStart+pageSize);dom.servantPageSize.value=String(pageSize);dom.servantPageLabel.textContent=`Page ${currentPage} of ${totalPages}`;dom.servantPagePrev.disabled=isLoading||currentPage<=1;dom.servantPageNext.disabled=isLoading||currentPage>=totalPages;
   if(dom.clearServantOptimizationButton)dom.clearServantOptimizationButton.classList.toggle("d-none",!state.servantOptimizationEnabled);
   dom.servantFilterSummary.textContent=state.servantOptimizationEnabled?`Showing ${pagedServants.length} of ${totalServants} servants matching CE limits.`:`Showing ${pagedServants.length} of ${totalServants} servants matching the current search.`;
-
-  if(isLoading){
-    dom.servantFilterSummary.textContent="Loading servants...";
-    if(dom.clearServantOptimizationButton)dom.clearServantOptimizationButton.classList.add("d-none");
-    dom.servantResults.innerHTML=sidebarLoadingMarkup("Loading servants",state.servantSidebarLoadingProgress);
-    dom.servantPageLabel.textContent="Page 1 of 1";
-    dom.servantPagePrev.disabled=true;
-    dom.servantPageNext.disabled=true;
-    return;
-  }
-
+  if(isLoading){dom.servantFilterSummary.textContent="Loading servants...";if(dom.clearServantOptimizationButton)dom.clearServantOptimizationButton.classList.add("d-none");dom.servantResults.innerHTML=sidebarLoadingMarkup("Loading servants",state.servantSidebarLoadingProgress);dom.servantPageLabel.textContent="Page 1 of 1";dom.servantPagePrev.disabled=true;dom.servantPageNext.disabled=true;return;}
   dom.servantResults.innerHTML=pagedServants.length?pagedServants.map((servant)=>servantCardMarkup(servant,emptySlotIndex===-1||!canAddServantToSelection(servant.id,emptySlotIndex))).join(""):`<div class="empty-state">No servants match the current search and CE filters.</div>`;
   dom.servantResults.querySelectorAll("[data-add-servant]").forEach((button)=>{button.addEventListener("click",()=>{const servantId=Number(button.dataset.addServant),servant=state.servants.find((entry)=>entry.id===servantId),targetIndex=getNextEmptyServantSlotIndex();if(!servant||targetIndex===-1)return;if(!canAddServantToSelection(servantId,targetIndex))return;state.selectedServants[targetIndex]=servant;state.selectedServantBond15[targetIndex]=false;state.selectedServantBondHidden[targetIndex]=false;state.activeServantSlot=null;state.servantOptimizationEnabled=false;renderAll();});});
 }
@@ -56,7 +46,7 @@ function renderCESidebar(){
   const pageStart=totalCEs?(currentPage-1)*pageSize:0,pagedCEs=visibleCEs.slice(pageStart,pageStart+pageSize);if(dom.cePageSize)dom.cePageSize.value=String(pageSize);if(dom.cePageLabel)dom.cePageLabel.textContent=`Page ${currentPage} of ${totalPages}`;if(dom.cePagePrev)dom.cePagePrev.disabled=currentPage<=1;if(dom.cePageNext)dom.cePageNext.disabled=currentPage>=totalPages;
   dom.ceFilterSummary.textContent=`Showing ${pagedCEs.length} of ${totalCEs} Craft Essences.`;dom.ceResults.innerHTML=pagedCEs.length?pagedCEs.map((ce)=>ceCardMarkup(ce)).join(""):`<div class="empty-state">No Craft Essences match the current search.</div>`;
   bindCEHoverHighlights(dom.ceResults,"sidebar");
-  dom.ceResults.querySelectorAll("[data-add-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=isDefaultOwnCE(ce);renderAll();});});
+  dom.ceResults.querySelectorAll("[data-add-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=getDefaultCEOwnedState(ce);renderAll();});});
 }
 
 function sidebarLoadingMarkup(label,progress){const clampedProgress=Math.max(0,Math.min(100,Math.round(Number(progress)||0)));return `<div class="sidebar-loading-indicator" style="--loading-progress:${clampedProgress}"><div class="sidebar-loading-ring"><span class="sidebar-loading-ring-core">${clampedProgress}%</span></div><div class="small text-muted">${label}...</div></div>`;}
@@ -67,19 +57,11 @@ function renderRecommendations(){
   if(!recommendations.length){dom.recommendationArea.classList.add("recommendation-grid-empty");dom.recommendationArea.innerHTML=`<div class="empty-state">Click Optimize CEs to rank bond-focused Craft Essences.</div>`;return;}
   dom.recommendationArea.classList.remove("recommendation-grid-empty");dom.recommendationArea.innerHTML=recommendations.map((ce,index)=>recommendationMarkup(ce,index)).join("");
   bindCEHoverHighlights(dom.recommendationArea,"recommendation");
-  dom.recommendationArea.querySelectorAll("[data-add-recommended-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addRecommendedCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=isDefaultOwnCE(ce);renderAll();});});
+  dom.recommendationArea.querySelectorAll("[data-add-recommended-ce]").forEach((button)=>{button.addEventListener("click",()=>{const ceId=Number(button.dataset.addRecommendedCe),ce=state.ces.find((entry)=>entry.id===ceId);if(!ce)return;const targetIndex=state.activeCESlot??firstOpenSlot(state.selectedCEs);state.selectedCEs[targetIndex]=ce;state.selectedCEOwned[targetIndex]=getDefaultCEOwnedState(ce);renderAll();});});
 }
 
 function bindCEHoverHighlights(container,source){
-  container.querySelectorAll("[data-ce-tooltip-id],[data-recommendation-id]").forEach((card)=>{
-    card.addEventListener("mouseenter",()=>{
-      const ce=getCEFromHoverCard(card,source);
-      if(!ce)return;
-      const assignedSlot=getCEAssignedSlotFromHoverCard(card,ce,source);
-      highlightAffectedServants(ce,assignedSlot,source==="sidebar");
-    });
-    card.addEventListener("mouseleave",clearHighlightedServants);
-  });
+  container.querySelectorAll("[data-ce-tooltip-id],[data-recommendation-id]").forEach((card)=>{card.addEventListener("mouseenter",()=>{const ce=getCEFromHoverCard(card,source);if(!ce)return;const assignedSlot=getCEAssignedSlotFromHoverCard(card,ce,source);highlightAffectedServants(ce,assignedSlot,source==="sidebar");});card.addEventListener("mouseleave",clearHighlightedServants);});
 }
 
 function getCEFromHoverCard(card,source){
@@ -89,18 +71,11 @@ function getCEFromHoverCard(card,source){
   return state.ces.find((entry)=>entry.id===ceId)||state.selectedCEs.find((entry)=>entry?.id===ceId)||null;
 }
 
-function getCEAssignedSlotFromHoverCard(card,ce,source){
-  if(source==="recommendation"&&Number.isInteger(ce.assignedSlot))return ce.assignedSlot;
-  if(source==="selected")return Number(card.closest("[data-slot-type='ce']")?.dataset.slotIndex??-1);
-  return -1;
-}
+function getCEAssignedSlotFromHoverCard(card,ce,source){if(source==="recommendation"&&Number.isInteger(ce.assignedSlot))return ce.assignedSlot;if(source==="selected")return Number(card.closest("[data-slot-type='ce']")?.dataset.slotIndex??-1);return -1;}
 
 function highlightAffectedServants(ce,ceSlotIndex=-1,ignoreExceptSelf=true){
   clearHighlightedServants();
-  state.selectedServants.forEach((servant,servantSlotIndex)=>{
-    if(!servant||state.selectedServantBond15[servantSlotIndex])return;
-    if(doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex,ignoreExceptSelf))dom.servantSlots.querySelector(`.selection-slot[data-slot-index="${servantSlotIndex}"]`)?.classList.add("highlighted-slot");
-  });
+  state.selectedServants.forEach((servant,servantSlotIndex)=>{if(!servant||state.selectedServantBond15[servantSlotIndex])return;if(doesCEAffectServant(ce,servant,ceSlotIndex,servantSlotIndex,ignoreExceptSelf))dom.servantSlots.querySelector(`.selection-slot[data-slot-index="${servantSlotIndex}"]`)?.classList.add("highlighted-slot");});
 }
 
 function clearHighlightedServants(){dom.servantSlots.querySelectorAll(".highlighted-slot").forEach((slot)=>slot.classList.remove("highlighted-slot"));}
