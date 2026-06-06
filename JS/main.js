@@ -51,53 +51,15 @@ function cacheDom(){
 }
 
 function bindEvents(){
-  dom.servantSearch?.addEventListener("input",(event)=>{
-    state.servantSearch=event.target.value.trim();
-    state.servantSidebarPage=1;
-    renderServantSidebar();
-  });
+  dom.servantSearch?.addEventListener("input",(event)=>{state.servantSearch=event.target.value.trim();state.servantSidebarPage=1;renderServantSidebar();});
+  dom.servantPageSize?.addEventListener("change",(event)=>{const parsed=Number(event.target.value);if(!Number.isFinite(parsed)||parsed<=0)return;state.servantSidebarPageSize=parsed;state.servantSidebarPage=1;renderServantSidebar();});
+  dom.servantPagePrev?.addEventListener("click",()=>{state.servantSidebarPage=Math.max(1,state.servantSidebarPage-1);renderServantSidebar();});
+  dom.servantPageNext?.addEventListener("click",()=>{state.servantSidebarPage+=1;renderServantSidebar();});
 
-  dom.servantPageSize?.addEventListener("change",(event)=>{
-    const parsed=Number(event.target.value);
-    if(!Number.isFinite(parsed)||parsed<=0)return;
-    state.servantSidebarPageSize=parsed;
-    state.servantSidebarPage=1;
-    renderServantSidebar();
-  });
-
-  dom.servantPagePrev?.addEventListener("click",()=>{
-    state.servantSidebarPage=Math.max(1,state.servantSidebarPage-1);
-    renderServantSidebar();
-  });
-
-  dom.servantPageNext?.addEventListener("click",()=>{
-    state.servantSidebarPage+=1;
-    renderServantSidebar();
-  });
-
-  dom.ceSearch?.addEventListener("input",(event)=>{
-    state.ceSearch=event.target.value.trim();
-    state.ceSidebarPage=1;
-    renderCESidebar();
-  });
-
-  dom.cePageSize?.addEventListener("change",(event)=>{
-    const parsed=Number(event.target.value);
-    if(!Number.isFinite(parsed)||parsed<=0)return;
-    state.ceSidebarPageSize=parsed;
-    state.ceSidebarPage=1;
-    renderCESidebar();
-  });
-
-  dom.cePagePrev?.addEventListener("click",()=>{
-    state.ceSidebarPage=Math.max(1,state.ceSidebarPage-1);
-    renderCESidebar();
-  });
-
-  dom.cePageNext?.addEventListener("click",()=>{
-    state.ceSidebarPage+=1;
-    renderCESidebar();
-  });
+  dom.ceSearch?.addEventListener("input",(event)=>{state.ceSearch=event.target.value.trim();state.ceSidebarPage=1;renderCESidebar();});
+  dom.cePageSize?.addEventListener("change",(event)=>{const parsed=Number(event.target.value);if(!Number.isFinite(parsed)||parsed<=0)return;state.ceSidebarPageSize=parsed;state.ceSidebarPage=1;renderCESidebar();});
+  dom.cePagePrev?.addEventListener("click",()=>{state.ceSidebarPage=Math.max(1,state.ceSidebarPage-1);renderCESidebar();});
+  dom.cePageNext?.addEventListener("click",()=>{state.ceSidebarPage+=1;renderCESidebar();});
 
   dom.optimizeCEsButton?.addEventListener("click",handleOptimizeCEs);
   dom.optimizeServantsButton?.addEventListener("click",handleOptimizeServants);
@@ -105,8 +67,5 @@ function bindEvents(){
   dom.clearAllButton?.addEventListener("click",handleClearAll);
   dom.addAllRecommendedCEsButton?.addEventListener("click",handleAddAllRecommendedCEs);
 
-  dom.maxTotalCostInput?.addEventListener("input",()=>{
-    renderCostHeaders();
-    if(Array.isArray(state.recommendations)&&state.recommendations.length)handleOptimizeCEs();
-  });
+  dom.maxTotalCostInput?.addEventListener("input",()=>{renderCostHeaders();if(Array.isArray(state.recommendations)&&state.recommendations.length)handleOptimizeCEs();});
 }
