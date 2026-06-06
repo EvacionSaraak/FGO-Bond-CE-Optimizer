@@ -109,6 +109,8 @@ body{min-height:100vh;background:var(--bg);color:var(--text);font-size:16px;line
 #servant-filter-summary,#ce-filter-summary{max-width:65%;text-align:right;line-height:1.25;color:var(--muted)!important}
 #servant-page-label,#ce-page-label{min-width:7rem;white-space:nowrap;color:var(--muted)!important}
 #servant-page-prev,#servant-page-next,#ce-page-prev,#ce-page-next{white-space:nowrap}
+.servant-sidebar-status-row{flex-wrap:wrap}
+#clear-servant-optimization-btn{white-space:nowrap}
 
 /* SIDEBAR LOADING */
 .sidebar-loading .form-control:disabled,.sidebar-loading .form-select:disabled{opacity:.7;cursor:wait}
