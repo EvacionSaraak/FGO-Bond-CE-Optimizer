@@ -8,9 +8,10 @@ function getTargetServantSlotIndex(){return state.activeServantSlot??firstOpenSl
 function canAddServantToSelection(servantId,targetIndex=getTargetServantSlotIndex()){const currentServant=state.selectedServants[targetIndex],currentIsSameServant=currentServant?.id===servantId,existingCopies=state.selectedServants.filter((entry)=>entry?.id===servantId).length,copiesAfterReplacingTarget=existingCopies-(currentIsSameServant?1:0);return copiesAfterReplacingTarget<2;}
 function humanizeTrait(traitName){return normalizeText(String(traitName||"").replace(/([a-z])([A-Z])/g,"$1 $2").replace(/[_-]/g," ").replace(/\b(class|attribute|alignment)\b/gi,""));}
 function classAbbreviation(className){return String(className||"").split(/\s+/).map((part)=>part[0]).join("").slice(0,2).toUpperCase();}
+function getServantCost(servant){if(!servant)return 0;if(isMashBondSupportServant(servant))return 0;return getServantCostByRarity(servant.rarity);}
 function getServantCostByRarity(rarity){const r=Number(rarity)||0;if(r>=5)return 16;if(r===4)return 12;if(r===3)return 7;if(r===2)return 4;return 3;}
 function getCECostByRarity(rarity){const r=Number(rarity)||0;if(r>=5)return 12;if(r===4)return 9;if(r===3)return 5;if(r===2)return 4;return 3;}
-function getSelectedServantCost(){return state.selectedServants.reduce((sum,servant)=>sum+(servant?getServantCostByRarity(servant.rarity):0),0);}
+function getSelectedServantCost(){return state.selectedServants.reduce((sum,servant)=>sum+getServantCost(servant),0);}
 function getSelectedCECost(){return state.selectedCEs.reduce((sum,ce)=>sum+(ce?getCECostByRarity(ce.rarity):0),0);}
 function getSelectedTotalCost(){return getSelectedServantCost()+getSelectedCECost();}
 function getMaxTotalCost(){const raw=dom.maxTotalCostInput?.value?.trim?.()||"";if(raw==="")return Infinity;const parsed=Number(raw);return Number.isFinite(parsed)&&parsed>=0?parsed:Infinity;}
@@ -35,8 +36,10 @@ function isFlatBondPointCE(ceName=""){return normalizeText(ceName).includes("por
 function isPremultipliedBondPercentCE(ceName=""){const raw=String(ceName||""),name=normalizeText(raw);return raw.includes("英霊極点")||name.includes("heroic spirit apex");}
 function getBondMLBMultiplier(ceName=""){return isPremultipliedBondPercentCE(ceName)?1:5;}
 function isDefaultOwnCE(ce){return normalizeText(ce?.name||"")==="chaldea teatime";}
+function shouldTreatChaldeaTeatimeAsOwn(){return state.chaldeaTeatimeAsOwn!==false;}
+function getDefaultCEOwnedState(ce){return isDefaultOwnCE(ce)&&shouldTreatChaldeaTeatimeAsOwn();}
 function getCEBondPercent(ce,ceSlotIndex=null){if(!ce)return 0;const isOwned=ceSlotIndex!==null&&Boolean(state.selectedCEOwned[ceSlotIndex]);if(isOwned&&Number(ce.ownPercent)>0)return ce.ownPercent;return ce.percent;}
-function getOptimizedCEBondPercent(ce){if(!ce)return 0;return isDefaultOwnCE(ce)&&Number(ce.ownPercent)>0?ce.ownPercent:ce.percent;}
+function getOptimizedCEBondPercent(ce){if(!ce)return 0;if(isDefaultOwnCE(ce)&&shouldTreatChaldeaTeatimeAsOwn()&&Number(ce.ownPercent)>0)return ce.ownPercent;return ce.percent;}
 function isMashBondSupportServant(servant){const name=normalizeText(servant?.name||servant?.normalizedName||"");return name==="mash kyrielight"||name==="mashu kyrielight"||name.includes("mash kyrielight")||name.includes("mashu kyrielight");}
 
 const JP_CE_CONDITION_ALIASES={
@@ -44,75 +47,26 @@ const JP_CE_CONDITION_ALIASES={
   "デミサーヴァント":{label:"Demi-Servant",aliases:["demi-servant","demi servant","demi servants"]},
   "今を生きる人類":{label:"Living Human",aliases:["living human","living humans","living humanity","humans living in the present"]},
   "今を生きる人間":{label:"Living Human",aliases:["living human","living humans","living humanity","humans living in the present"]},
-
-  "秩序":{label:"Lawful",aliases:["lawful"]},
-  "混沌":{label:"Chaotic",aliases:["chaotic"]},
-  "中立":{label:"Neutral",aliases:["neutral"]},
-  "善":{label:"Good",aliases:["good"]},
-  "悪":{label:"Evil",aliases:["evil","evil alignment"]},
-  "悪属性":{label:"Evil",aliases:["evil","evil alignment"]},
-  "悪特性":{label:"Evil",aliases:["evil","evil alignment"]},
-  "中庸":{label:"Balanced",aliases:["balanced"]},
-  "狂":{label:"Madness",aliases:["madness"]},
-  "夏":{label:"Summer",aliases:["summer"]},
-
-  "男性":{label:"Male",aliases:["male"]},
-  "女性":{label:"Female",aliases:["female"]},
-  "性別不明":{label:"Unknown",aliases:["unknown"]},
-
-  "天":{label:"Sky",aliases:["sky","sky attribute"]},
-  "天属性":{label:"Sky",aliases:["sky","sky attribute"]},
-  "地":{label:"Earth",aliases:["earth","earth attribute"]},
-  "地属性":{label:"Earth",aliases:["earth","earth attribute"]},
-  "人":{label:"Man",aliases:["man","man attribute"]},
-  "人属性":{label:"Man",aliases:["man","man attribute"]},
-
+  "秩序":{label:"Lawful",aliases:["lawful"]},"混沌":{label:"Chaotic",aliases:["chaotic"]},"中立":{label:"Neutral",aliases:["neutral"]},"善":{label:"Good",aliases:["good"]},
+  "悪":{label:"Evil",aliases:["evil","evil alignment"]},"悪属性":{label:"Evil",aliases:["evil","evil alignment"]},"悪特性":{label:"Evil",aliases:["evil","evil alignment"]},
+  "中庸":{label:"Balanced",aliases:["balanced"]},"狂":{label:"Madness",aliases:["madness"]},"夏":{label:"Summer",aliases:["summer"]},"男性":{label:"Male",aliases:["male"]},"女性":{label:"Female",aliases:["female"]},"性別不明":{label:"Unknown",aliases:["unknown"]},
+  "天":{label:"Sky",aliases:["sky","sky attribute"]},"天属性":{label:"Sky",aliases:["sky","sky attribute"]},"地":{label:"Earth",aliases:["earth","earth attribute"]},"地属性":{label:"Earth",aliases:["earth","earth attribute"]},
+  "人":{label:"Man",aliases:["man","man attribute"]},"人属性":{label:"Man",aliases:["man","man attribute"]},
   "星の力を持つ者":{label:"Star",aliases:["star","star attribute","star trait","has star attribute","one with star power"]},
   "星の力を持つ":{label:"Star",aliases:["star","star attribute","star trait","has star attribute","one with star power"]},
-  "星":{label:"Star",aliases:["star","star attribute"]},
-  "星属性":{label:"Star",aliases:["star","star attribute"]},
-
-  "獣":{label:"Beast",aliases:["beast","beast attribute"]},
-  "獣属性":{label:"Beast",aliases:["beast","beast attribute"]},
-
+  "星":{label:"Star",aliases:["star","star attribute"]},"星属性":{label:"Star",aliases:["star","star attribute"]},
+  "獣":{label:"Beast",aliases:["beast","beast attribute"]},"獣属性":{label:"Beast",aliases:["beast","beast attribute"]},
   "七騎士":{label:"Seven Knights",aliases:["seven knights","standard class","standard classes"],classes:["saber","archer","lancer","rider","caster","assassin","berserker"]},
   "ケモノ科":{label:"Animal Characteristic",aliases:["animal characteristic","animal characteristics","animal characteristics servant","animal trait","kemono"]},
-  "衣装持ち":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
-  "霊衣":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
-
-  "セイバー":{label:"Saber",aliases:["saber"]},
-  "アーチャー":{label:"Archer",aliases:["archer"]},
-  "ランサー":{label:"Lancer",aliases:["lancer"]},
-  "ライダー":{label:"Rider",aliases:["rider"]},
-  "キャスター":{label:"Caster",aliases:["caster"]},
-  "アサシン":{label:"Assassin",aliases:["assassin"]},
-  "バーサーカー":{label:"Berserker",aliases:["berserker"]},
-  "ルーラー":{label:"Ruler",aliases:["ruler"]},
-  "アヴェンジャー":{label:"Avenger",aliases:["avenger"]},
-  "ムーンキャンサー":{label:"Moon Cancer",aliases:["moon cancer","mooncancer"]},
-  "アルターエゴ":{label:"Alter Ego",aliases:["alter ego","alterego"]},
-  "フォーリナー":{label:"Foreigner",aliases:["foreigner"]},
-  "プリテンダー":{label:"Pretender",aliases:["pretender"]}
+  "衣装持ち":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},"霊衣":{label:"Costume-Owning",aliases:["costume owning","costume-owning","costume owning trait","has costume","costume"]},
+  "セイバー":{label:"Saber",aliases:["saber"]},"アーチャー":{label:"Archer",aliases:["archer"]},"ランサー":{label:"Lancer",aliases:["lancer"]},"ライダー":{label:"Rider",aliases:["rider"]},"キャスター":{label:"Caster",aliases:["caster"]},"アサシン":{label:"Assassin",aliases:["assassin"]},"バーサーカー":{label:"Berserker",aliases:["berserker"]},"ルーラー":{label:"Ruler",aliases:["ruler"]},"アヴェンジャー":{label:"Avenger",aliases:["avenger"]},"ムーンキャンサー":{label:"Moon Cancer",aliases:["moon cancer","mooncancer"]},"アルターエゴ":{label:"Alter Ego",aliases:["alter ego","alterego"]},"フォーリナー":{label:"Foreigner",aliases:["foreigner"]},"プリテンダー":{label:"Pretender",aliases:["pretender"]}
 };
 
 function normalizeJapaneseConditionText(value){return String(value||"").replace(/[（(][^）)]*[）)]/g,"").replace(/[「」『』【】\[\]\(\)（）]/g,"").replace(/\s+/g,"").trim();}
-function japaneseConditionAliasMatches(jp,rawAlternative){
-  const alternative=normalizeJapaneseConditionText(rawAlternative),alias=normalizeJapaneseConditionText(jp);
-  if(!alternative||!alias)return false;
-  if(alternative===alias)return true;
-  if(alternative.includes(`〔${jp}〕`))return true;
-  if(alias.length<=1){
-    if(alternative===`${alias}属性`||alternative===`${alias}特性`)return true;
-    if(alternative.startsWith(`${alias}属性`)||alternative.startsWith(`${alias}特性`))return true;
-    if(alternative.includes(`かつ${alias}`)||alternative.includes(`${alias}かつ`))return true;
-    if(alternative.includes(`・${alias}`)||alternative.includes(`${alias}・`))return true;
-    return false;
-  }
-  return alternative.includes(alias);
-}
+function japaneseConditionAliasMatches(jp,rawAlternative){const alternative=normalizeJapaneseConditionText(rawAlternative),alias=normalizeJapaneseConditionText(jp);if(!alternative||!alias)return false;if(alternative===alias)return true;if(alternative.includes(`〔${jp}〕`))return true;if(alias.length<=1){if(alternative===`${alias}属性`||alternative===`${alias}特性`)return true;if(alternative.startsWith(`${alias}属性`)||alternative.startsWith(`${alias}特性`))return true;if(alternative.includes(`かつ${alias}`)||alternative.includes(`${alias}かつ`))return true;if(alternative.includes(`・${alias}`)||alternative.includes(`${alias}・`))return true;return false;}return alternative.includes(alias);}
 function getJapaneseBondConditionGroups(detail){
   const text=String(detail||""),groups=[],sortedAliases=Object.entries(JP_CE_CONDITION_ALIASES).sort((a,b)=>b[0].length-a[0].length);
-  const addGroupFromText=(raw)=>{const source=String(raw||""),alternatives=source.split(/(?:または|又は|\/| or )/i);for(const alternative of alternatives){const conditions=[];for(const[jp,entry]of sortedAliases){if(japaneseConditionAliasMatches(jp,alternative)&&!conditions.includes(entry.label))conditions.push(entry.label);}if(conditions.length)groups.push(conditions);}};
+  const addGroupFromText=(raw)=>{const source=String(raw||"").replace(/〕\s*または\s*〔/g,"〕||〔").replace(/〕\s*又は\s*〔/g,"〕||〔"),alternatives=source.split(/\|\||または|又は|\/| or /i);for(const alternative of alternatives){const conditions=[];for(const[jp,entry]of sortedAliases){if(japaneseConditionAliasMatches(jp,alternative)&&!conditions.includes(entry.label))conditions.push(entry.label);}if(conditions.length)groups.push(conditions);}};
   for(const match of text.matchAll(/クエストクリア時に得られる(.+?)絆/g))addGroupFromText(match[1]);
   for(const match of text.matchAll(/〔([^〕]+)〕[^。]*?絆/g))addGroupFromText(match[1]);
   return groups.filter((group,index,self)=>self.findIndex((other)=>other.join("|")===group.join("|"))===index);
@@ -133,8 +87,7 @@ function servantMatchesCECondition(servant,condition){
   if(entry?.classes?.length)return entry.classes.includes(normalizeText(servant.className));
   const rawTraits=Array.isArray(servant.traits)?servant.traits:[],traitTokens=Array.isArray(servant.traitTokens)?servant.traitTokens:[],traitIds=Array.isArray(servant.traitIds)?servant.traitIds:[],rawObjectTraits=Array.isArray(servant.raw?.traits)?servant.raw.traits:[];
   const servantValues=[servant.name,servant.normalizedName,servant.className,servant.gender,servant.attribute,...(Array.isArray(servant.alignment)?servant.alignment:[]),...rawTraits,...traitTokens,...traitIds,...rawObjectTraits].filter((value)=>value!==null&&value!==undefined);
-  const valueSet=new Set(servantValues.flatMap(getTraitTokensFromValue));
-  const aliases=getConditionAliases(condition).flatMap(getTraitTokensFromValue);
+  const valueSet=new Set(servantValues.flatMap(getTraitTokensFromValue)),aliases=getConditionAliases(condition).flatMap(getTraitTokensFromValue);
   if(condition==="Living Human")aliases.push("2654","livinghuman","living human");
   if(condition==="Demi-Servant")aliases.push("940","demiservant","demi servant","demi-servant");
   return [...new Set(aliases.filter(Boolean))].some((alias)=>valueSet.has(alias));
